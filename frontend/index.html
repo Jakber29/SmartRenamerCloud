@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Smart Renamer Cloud</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">
+                    <i class="fas fa-cloud"></i>
+                    Smart Renamer Cloud
+                </h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="showUploadModal()">
+                        <i class="fas fa-upload"></i>
+                        Upload Files
+                    </button>
+                    <button class="btn btn-primary" onclick="showCsvUploadModal()">
+                        <i class="fas fa-file-csv"></i>
+                        Upload CSV
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <nav class="nav-menu">
+                    <a href="#" class="nav-item active" data-page="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                    <a href="#" class="nav-item" data-page="matching">
+                        <i class="fas fa-link"></i>
+                        File Matching
+                    </a>
+                    <a href="#" class="nav-item" data-page="transactions">
+                        <i class="fas fa-list"></i>
+                        Transactions
+                    </a>
+                    <a href="#" class="nav-item" data-page="vendors">
+                        <i class="fas fa-building"></i>
+                        Vendors
+                    </a>
+                    <a href="#" class="nav-item" data-page="projects">
+                        <i class="fas fa-project-diagram"></i>
+                        Projects
+                    </a>
+                    <a href="#" class="nav-item" data-page="team">
+                        <i class="fas fa-users"></i>
+                        Team Members
+                    </a>
+                    <a href="#" class="nav-item" data-page="reimbursements">
+                        <i class="fas fa-receipt"></i>
+                        Reimbursements
+                    </a>
+                    <a href="#" class="nav-item" data-page="admin">
+                        <i class="fas fa-cog"></i>
+                        Admin
+                    </a>
+                </nav>
+            </aside>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Dashboard Page -->
+                <div id="dashboard-page" class="page active">
+                    <div class="page-header">
+                        <h2>Dashboard</h2>
+                        <p>Welcome to Smart Renamer Cloud - Your file management solution</p>
+                    </div>
+                    
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <i class="fas fa-file-alt"></i>
+                                <h3>Files</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="stat">
+                                    <span class="stat-number" id="file-count">0</span>
+                                    <span class="stat-label">Total Files</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <i class="fas fa-list"></i>
+                                <h3>Transactions</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="stat">
+                                    <span class="stat-number" id="transaction-count">0</span>
+                                    <span class="stat-label">Total Transactions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <i class="fas fa-link"></i>
+                                <h3>Matches</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="stat">
+                                    <span class="stat-number" id="match-count">0</span>
+                                    <span class="stat-label">Matched Files</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <i class="fas fa-building"></i>
+                                <h3>Vendors</h3>
+                            </div>
+                            <div class="card-content">
+                                <div class="stat">
+                                    <span class="stat-number" id="vendor-count">0</span>
+                                    <span class="stat-label">Total Vendors</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-actions">
+                        <button class="btn btn-primary" onclick="showUploadModal()">
+                            <i class="fas fa-upload"></i>
+                            Upload Files
+                        </button>
+                        <button class="btn btn-secondary" onclick="showCsvUploadModal()">
+                            <i class="fas fa-file-csv"></i>
+                            Upload CSV
+                        </button>
+                        <button class="btn btn-outline" onclick="loadDashboardData()">
+                            <i class="fas fa-sync"></i>
+                            Refresh Data
+                        </button>
+                    </div>
+                </div>
+
+                <!-- File Matching Page -->
+                <div id="matching-page" class="page">
+                    <div class="page-header">
+                        <h2>File Matching</h2>
+                        <p>Match your uploaded files with transactions</p>
+                    </div>
+                    
+                    <div class="matching-container">
+                        <div class="files-panel">
+                            <h3>Files</h3>
+                            <div id="files-list" class="files-list">
+                                <div class="empty-state">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>No files uploaded yet</p>
+                                    <button class="btn btn-primary" onclick="showUploadModal()">
+                                        Upload Files
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="transactions-panel">
+                            <h3>Transactions</h3>
+                            <div class="transactions-controls">
+                                <input type="text" id="transaction-search" placeholder="Search transactions..." class="search-input">
+                            </div>
+                            <div id="transactions-list" class="transactions-list">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-csv"></i>
+                                    <p>No transactions loaded</p>
+                                    <button class="btn btn-primary" onclick="showCsvUploadModal()">
+                                        Upload CSV
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transactions Page -->
+                <div id="transactions-page" class="page">
+                    <div class="page-header">
+                        <h2>Transactions</h2>
+                        <p>Manage your transaction data</p>
+                    </div>
+                    
+                    <div class="transactions-container">
+                        <div class="transactions-controls">
+                            <input type="text" id="transactions-search" placeholder="Search transactions..." class="search-input">
+                            <button class="btn btn-primary" onclick="showCsvUploadModal()">
+                                <i class="fas fa-upload"></i>
+                                Upload CSV
+                            </button>
+                        </div>
+                        
+                        <div id="transactions-table" class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Vendor</th>
+                                        <th>Amount</th>
+                                        <th>Description</th>
+                                        <th>Cardholder</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-tbody">
+                                    <tr>
+                                        <td colspan="6" class="empty-state">
+                                            <i class="fas fa-file-csv"></i>
+                                            <p>No transactions loaded</p>
+                                            <button class="btn btn-primary" onclick="showCsvUploadModal()">
+                                                Upload CSV
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vendors Page -->
+                <div id="vendors-page" class="page">
+                    <div class="page-header">
+                        <h2>Vendors</h2>
+                        <p>Manage your vendor information</p>
+                    </div>
+                    
+                    <div class="vendors-container">
+                        <div class="vendors-controls">
+                            <input type="text" id="vendors-search" placeholder="Search vendors..." class="search-input">
+                            <button class="btn btn-primary" onclick="showVendorModal()">
+                                <i class="fas fa-plus"></i>
+                                Add Vendor
+                            </button>
+                        </div>
+                        
+                        <div id="vendors-list" class="vendors-list">
+                            <!-- Vendors will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Page -->
+                <div id="projects-page" class="page">
+                    <div class="page-header">
+                        <h2>Projects</h2>
+                        <p>Manage your project information</p>
+                    </div>
+                    
+                    <div class="projects-container">
+                        <div class="projects-controls">
+                            <input type="text" id="projects-search" placeholder="Search projects..." class="search-input">
+                            <button class="btn btn-primary" onclick="showProjectModal()">
+                                <i class="fas fa-plus"></i>
+                                Add Project
+                            </button>
+                        </div>
+                        
+                        <div id="projects-list" class="projects-list">
+                            <!-- Projects will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Members Page -->
+                <div id="team-page" class="page">
+                    <div class="page-header">
+                        <h2>Team Members</h2>
+                        <p>Manage your team member information</p>
+                    </div>
+                    
+                    <div class="team-container">
+                        <div class="team-controls">
+                            <input type="text" id="team-search" placeholder="Search team members..." class="search-input">
+                            <button class="btn btn-primary" onclick="showTeamMemberModal()">
+                                <i class="fas fa-plus"></i>
+                                Add Team Member
+                            </button>
+                        </div>
+                        
+                        <div id="team-list" class="team-list">
+                            <!-- Team members will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reimbursements Page -->
+                <div id="reimbursements-page" class="page">
+                    <div class="page-header">
+                        <h2>Reimbursements</h2>
+                        <p>Manage reimbursement requests</p>
+                    </div>
+                    
+                    <div class="reimbursements-container">
+                        <div class="reimbursements-controls">
+                            <button class="btn btn-primary" onclick="showReimbursementModal()">
+                                <i class="fas fa-plus"></i>
+                                Add Reimbursement
+                            </button>
+                        </div>
+                        
+                        <div id="reimbursements-list" class="reimbursements-list">
+                            <!-- Reimbursements will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Page -->
+                <div id="admin-page" class="page">
+                    <div class="page-header">
+                        <h2>Admin</h2>
+                        <p>System administration and settings</p>
+                    </div>
+                    
+                    <div class="admin-container">
+                        <div class="admin-section">
+                            <h3>System Status</h3>
+                            <div class="status-grid">
+                                <div class="status-item">
+                                    <span class="status-label">API Status:</span>
+                                    <span class="status-value" id="api-status">Checking...</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">Database:</span>
+                                    <span class="status-value" id="db-status">Checking...</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">Storage:</span>
+                                    <span class="status-value" id="storage-status">Checking...</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="admin-section">
+                            <h3>Actions</h3>
+                            <div class="admin-actions">
+                                <button class="btn btn-secondary" onclick="testApi()">
+                                    <i class="fas fa-wifi"></i>
+                                    Test API Connection
+                                </button>
+                                <button class="btn btn-secondary" onclick="clearAllData()">
+                                    <i class="fas fa-trash"></i>
+                                    Clear All Data
+                                </button>
+                                <button class="btn btn-secondary" onclick="exportData()">
+                                    <i class="fas fa-download"></i>
+                                    Export Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload Files</h3>
+                <button class="modal-close" onclick="closeModal('upload-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-area">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drag and drop files here or click to select</p>
+                    <input type="file" id="file-input" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">
+                        Select Files
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="csv-upload-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload CSV</h3>
+                <button class="modal-close" onclick="closeModal('csv-upload-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-area">
+                    <i class="fas fa-file-csv"></i>
+                    <p>Upload your transaction CSV file</p>
+                    <input type="file" id="csv-input" accept=".csv" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('csv-input').click()">
+                        Select CSV File
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html> 

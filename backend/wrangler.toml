@@ -1,0 +1,37 @@
+name = "smart-renamer-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "smart-renamer-db"
+database_id = "873e836d-b5fd-4e45-bce2-cf8ba5791586"
+
+[env.production]
+name = "smart-renamer-api"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "smart-renamer-db"
+database_id = "873e836d-b5fd-4e45-bce2-cf8ba5791586"
+
+# R2 bucket - uncomment after enabling R2 in Cloudflare dashboard
+# [[env.production.r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "smart-renamer-storage"
+
+[env.development]
+name = "smart-renamer-api-dev"
+
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "smart-renamer-db-dev"
+database_id = "873e836d-b5fd-4e45-bce2-cf8ba5791586"
+
+# R2 bucket - uncomment after enabling R2 in Cloudflare dashboard
+# [[env.development.r2_buckets]]
+# binding = "STORAGE"
+# bucket_name = "smart-renamer-storage-dev"
+
+[build]
+command = "npm run build" 
