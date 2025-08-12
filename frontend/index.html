@@ -42,6 +42,10 @@
                         <i class="fas fa-upload"></i>
                         File Upload
                     </a>
+                    <a href="#" class="nav-item" data-page="renaming">
+                        <i class="fas fa-edit"></i>
+                        File Renaming
+                    </a>
                     <a href="#" class="nav-item" data-page="dashboard">
                         <i class="fas fa-tachometer-alt"></i>
                         Dashboard
@@ -190,6 +194,115 @@
                             <i class="fas fa-sync"></i>
                             Refresh Stats
                         </button>
+                    </div>
+                </div>
+
+                <!-- File Renaming Page -->
+                <div id="renaming-page" class="page">
+                    <div class="page-header">
+                        <h2>File Renaming</h2>
+                        <p>Rename uploaded files with project, vendor, and billing information</p>
+                    </div>
+                    
+                    <div class="renaming-container">
+                        <!-- Files List (Left Side) -->
+                        <div class="files-panel">
+                            <div class="files-header">
+                                <h3>Files to Rename</h3>
+                                <div class="files-count" id="files-count">0 files</div>
+                            </div>
+                            <div class="files-search">
+                                <input type="text" id="files-search" placeholder="Search files..." class="search-input">
+                            </div>
+                            <div id="files-list-renaming" class="files-list-renaming">
+                                <div class="empty-state">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>No files uploaded yet</p>
+                                    <button class="btn btn-primary" onclick="navigateToPage('admin')">
+                                        Upload Files
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- File Preview and Renaming Form (Center) -->
+                        <div class="preview-panel">
+                            <div class="preview-header">
+                                <h3>File Preview</h3>
+                                <div class="preview-filename" id="preview-filename">Select a file to preview</div>
+                            </div>
+                            
+                            <!-- New Filename Preview -->
+                            <div class="filename-preview">
+                                <label>New Filename:</label>
+                                <div class="new-filename" id="new-filename">No file selected</div>
+                            </div>
+                            
+                            <!-- File Preview Area -->
+                            <div class="file-preview-area" id="file-preview-area">
+                                <div class="preview-placeholder">
+                                    <i class="fas fa-file-alt"></i>
+                                    <p>Select a file from the list to preview</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Renaming Form (Right Side) -->
+                        <div class="form-panel">
+                            <div class="form-header">
+                                <h3>File Information</h3>
+                            </div>
+                            
+                            <form id="renaming-form" class="renaming-form">
+                                <div class="form-group">
+                                    <label for="project-name">Project Name *</label>
+                                    <select id="project-name" name="project-name" required>
+                                        <option value="">Select a project...</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="vendor-name">Vendor Name *</label>
+                                    <select id="vendor-name" name="vendor-name" required>
+                                        <option value="">Select a vendor...</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="bill-date">Bill Date *</label>
+                                    <input type="date" id="bill-date" name="bill-date" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="bill-number">Bill/Invoice Number *</label>
+                                    <input type="text" id="bill-number" name="bill-number" placeholder="e.g., INV-2024-001" required>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="bill-amount">Bill Amount *</label>
+                                    <div class="amount-input">
+                                        <span class="currency-symbol">$</span>
+                                        <input type="number" id="bill-amount" name="bill-amount" step="0.01" min="0" placeholder="0.00" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="file-description">Description (Optional)</label>
+                                    <textarea id="file-description" name="file-description" rows="3" placeholder="Additional notes about this file..."></textarea>
+                                </div>
+                                
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                                        <i class="fas fa-undo"></i>
+                                        Clear
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="rename-btn" disabled>
+                                        <i class="fas fa-save"></i>
+                                        Rename File
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
