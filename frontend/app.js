@@ -642,27 +642,169 @@ function renderReimbursementsList(reimbursements) {
 // Admin Page
 async function loadUploadData() {
     try {
+        showLoading();
+        
         const [filesData, transactionsData, matchesData] = await Promise.all([
             apiCall('/api/files'),
             apiCall('/api/transactions'),
             apiCall('/api/manual-matches')
         ]);
         
-        // Update upload stats
-        document.getElementById('upload-file-count').textContent = filesData.files ? filesData.files.length : 0;
-        document.getElementById('upload-transaction-count').textContent = transactionsData.transactions ? transactionsData.transactions.length : 0;
-        document.getElementById('upload-match-count').textContent = matchesData.matches ? Object.keys(matchesData.matches).length : 0;
+        // Update stats
+        const fileCount = document.getElementById('upload-file-count');
+        const transactionCount = document.getElementById('upload-transaction-count');
+        const matchCount = document.getElementById('upload-match-count');
         
-        // Store data globally
-        transactions = transactionsData.transactions;
-        manualMatches = matchesData.matches;
+        if (fileCount) fileCount.textContent = filesData.files?.length || 0;
+        if (transactionCount) transactionCount.textContent = transactionsData.transactions?.length || 0;
+        if (matchCount) matchCount.textContent = matchesData.matches?.length || 0;
+        
+        // Show status message
+        const totalFiles = filesData.files?.length || 0;
+        if (totalFiles > 0) {
+            showToast('info', 'Files Loaded', `${totalFiles} file${totalFiles > 1 ? 's' : ''} available for processing`);
+        } else {
+            showToast('info', 'No Files', 'No files uploaded yet. Upload some files to get started!');
+        }
         
     } catch (error) {
         console.error('Error loading upload data:', error);
-        // Set default values if API fails
-        document.getElementById('upload-file-count').textContent = '0';
-        document.getElementById('upload-transaction-count').textContent = '0';
-        document.getElementById('upload-match-count').textContent = '0';
+        showToast('error', 'Load Error', 'Failed to load upload data');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Update upload statistics
+async function updateUploadStats() {
+    try {
+        const [filesData, transactionsData, matchesData] = await Promise.all([
+            apiCall('/api/files'),
+            apiCall('/api/transactions'),
+            apiCall('/api/manual-matches')
+        ]);
+        
+        // Update stats display
+        const fileCount = document.getElementById('upload-file-count');
+        const transactionCount = document.getElementById('upload-transaction-count');
+        const matchCount = document.getElementById('upload-match-count');
+        
+        if (fileCount) fileCount.textContent = filesData.files?.length || 0;
+        if (transactionCount) transactionCount.textContent = transactionsData.transactions?.length || 0;
+        if (matchCount) matchCount.textContent = matchesData.matches?.length || 0;
+        
+    } catch (error) {
+        console.error('Error updating upload stats:', error);
+    }
+}
+
+// File Upload
+async function handleFileUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    try {
+        showLoading();
+        showUploadProgress();
+        
+        // Show upload progress
+        showToast('info', 'Uploading Files', `Uploading ${files.length} file${files.length > 1 ? 's' : ''}...`);
+        
+        const uploadedFiles = [];
+        const failedFiles = [];
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // Update progress
+            const progress = Math.round(((i + 1) / files.length) * 100);
+            updateUploadProgress(progress, `Uploading ${file.name}...`);
+            
+            try {
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // Upload file to backend
+                const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        uploaded_at: new Date().toISOString()
+                    });
+                } else {
+                    failedFiles.push({
+                        name: file.name,
+                        error: result.error || 'Unknown error'
+                    });
+                }
+                
+            } catch (error) {
+                console.error(`Error uploading ${file.name}:`, error);
+                failedFiles.push({
+                    name: file.name,
+                    error: error.message
+                });
+            }
+        }
+        
+        // Show results
+        if (uploadedFiles.length > 0) {
+            showUploadSuccess(`${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} uploaded successfully!`);
+            showToast('success', 'Upload Complete', 
+                `${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} uploaded successfully!` +
+                (failedFiles.length > 0 ? ` ${failedFiles.length} failed.` : '')
+            );
+            
+            // Update upload stats
+            updateUploadStats();
+            
+            // Refresh file lists if on relevant pages
+            if (currentPage === 'renaming') {
+                loadRenamingData();
+            } else if (currentPage === 'bills') {
+                loadBillsData();
+            }
+        }
+        
+        if (failedFiles.length > 0) {
+            showUploadError(`${failedFiles.length} file${failedFiles.length > 1 ? 's' : ''} failed to upload`);
+            // Show detailed error for failed files
+            const errorDetails = failedFiles.map(f => `${f.name}: ${f.error}`).join('\n');
+            showToast('error', 'Upload Errors', 
+                `${failedFiles.length} file${failedFiles.length > 1 ? 's' : ''} failed to upload:\n${errorDetails}`
+            );
+        }
+        
+        // Close modal
+        closeModal('upload-modal');
+        
+        // Clear file inputs
+        event.target.value = '';
+        
+        // Hide progress after a delay
+        setTimeout(() => {
+            hideUploadProgress();
+        }, 3000);
+        
+    } catch (error) {
+        console.error('Error uploading files:', error);
+        showUploadError(`Failed to upload files: ${error.message}`);
+        showToast('error', 'Upload Error', `Failed to upload files: ${error.message}`);
+    } finally {
+        hideLoading();
     }
 }
 
@@ -674,62 +816,89 @@ async function handleFolderUpload(event) {
     try {
         showLoading();
         
-        // Process folder structure
-        const folderStructure = {};
+        // Show upload progress
+        showToast('info', 'Uploading Folder', `Uploading ${files.length} file${files.length > 1 ? 's' : ''} from folder...`);
+        
+        const uploadPromises = [];
+        const uploadedFiles = [];
+        const failedFiles = [];
+        
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            const pathParts = file.webkitRelativePath.split('/');
-            const folderName = pathParts[0];
             
-            if (!folderStructure[folderName]) {
-                folderStructure[folderName] = [];
+            try {
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('folder_upload', 'true');
+                
+                // Upload file to backend
+                const response = await fetch(`${API_BASE_URL}/api/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    uploadedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        uploaded_at: new Date().toISOString()
+                    });
+                } else {
+                    failedFiles.push({
+                        name: file.name,
+                        error: result.error || 'Unknown error'
+                    });
+                }
+                
+            } catch (error) {
+                console.error(`Error uploading ${file.name}:`, error);
+                failedFiles.push({
+                    name: file.name,
+                    error: error.message
+                });
             }
-            folderStructure[folderName].push(file);
         }
         
-        // Show folder structure info
-        const folderCount = Object.keys(folderStructure).length;
-        const totalFiles = files.length;
+        // Show results
+        if (uploadedFiles.length > 0) {
+            showToast('success', 'Folder Upload Complete', 
+                `${uploadedFiles.length} file${uploadedFiles.length > 1 ? 's' : ''} uploaded from folder!` +
+                (failedFiles.length > 0 ? ` ${failedFiles.length} failed.` : '')
+            );
+            
+            // Update upload stats
+            updateUploadStats();
+            
+            // Refresh file lists if on relevant pages
+            if (currentPage === 'renaming') {
+                loadRenamingData();
+            } else if (currentPage === 'bills') {
+                loadBillsData();
+            }
+        }
         
-        showToast('success', 'Folder Uploaded', `Uploaded ${folderCount} folder(s) with ${totalFiles} total files`);
+        if (failedFiles.length > 0) {
+            // Show detailed error for failed files
+            const errorDetails = failedFiles.map(f => `${f.name}: ${f.error}`).join('\n');
+            showToast('error', 'Upload Errors', 
+                `${failedFiles.length} file${failedFiles.length > 1 ? 's' : ''} failed to upload:\n${errorDetails}`
+            );
+        }
         
-        // Close any open modals
-        closeModal('upload-modal');
-        
-        // Refresh data
-        loadUploadData();
+        // Clear file inputs
+        event.target.value = '';
         
     } catch (error) {
         console.error('Error uploading folder:', error);
-        showToast('error', 'Upload Error', error.message);
-    } finally {
-        hideLoading();
-    }
-}
-
-// File Upload
-async function handleFileUpload(event) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-    
-    try {
-        showLoading();
-        
-        // In a real implementation, you would upload files to R2
-        // For now, we'll just show a success message
-        showToast('success', 'Files Uploaded', `${files.length} files uploaded successfully`);
-        
-        // Close modal
-        closeModal('upload-modal');
-        
-        // Refresh data if on matching page
-        if (currentPage === 'matching') {
-            loadMatchingData();
-        }
-        
-    } catch (error) {
-        console.error('Error uploading files:', error);
-        showToast('error', 'Upload Error', error.message);
+        showToast('error', 'Upload Error', `Failed to upload folder: ${error.message}`);
     } finally {
         hideLoading();
     }
@@ -1402,404 +1571,53 @@ function filterFilesRenaming(query) {
     });
 } 
 
-// Bills Page
-async function loadBillsData() {
-    try {
-        const [billsData, transactionsData] = await Promise.all([
-            apiCall('/api/bills'),
-            apiCall('/api/transactions')
-        ]);
-        
-        // Store data globally
-        transactions = transactionsData.transactions;
-        
-        // Render bills list
-        renderBillsList(billsData.bills);
-        
-        // Render transactions list
-        renderTransactionsListBills(transactions);
-        
-        // Set up event listeners
-        setupBillsEventListeners();
-        
-    } catch (error) {
-        console.error('Error loading bills data:', error);
+// Upload Progress Functions
+function showUploadProgress() {
+    const progress = document.getElementById('upload-progress');
+    if (progress) {
+        progress.style.display = 'block';
+        progress.className = 'upload-progress';
+        updateUploadProgress(0, 'Preparing upload...');
     }
 }
 
-function renderBillsList(bills) {
-    const billsList = document.getElementById('bills-list');
-    const billsCount = document.getElementById('bills-count');
+function updateUploadProgress(percent, message) {
+    const progressFill = document.getElementById('progress-fill');
+    const progressText = document.getElementById('progress-text');
+    const currentFile = document.getElementById('current-file');
     
-    if (!bills || bills.length === 0) {
-        billsList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-receipt"></i>
-                <p>No bills available</p>
-                <button class="btn btn-primary" onclick="navigateToPage('renaming')">
-                    Rename Files First
-                </button>
-            </div>
-        `;
-        billsCount.textContent = '0 bills';
-        return;
-    }
-    
-    billsCount.textContent = `${bills.length} bill${bills.length !== 1 ? 's' : ''}`;
-    
-    const billsHtml = bills.map(bill => `
-        <div class="bill-item" data-bill-id="${bill.id}" onclick="selectBill('${bill.id}')">
-            <div class="bill-icon">
-                <i class="${getFileIcon(bill.filename)}"></i>
-            </div>
-            <div class="bill-info">
-                <div class="bill-name">${bill.filename}</div>
-                <div class="bill-meta">${bill.vendor_name} • $${bill.amount}</div>
-                <div class="bill-status ${bill.status}">${getStatusText(bill.status)}</div>
-            </div>
-        </div>
-    `).join('');
-    
-    billsList.innerHTML = billsHtml;
+    if (progressFill) progressFill.style.width = `${percent}%`;
+    if (progressText) progressText.textContent = `${percent}%`;
+    if (currentFile) currentFile.textContent = message;
 }
 
-function getStatusText(status) {
-    const statusMap = {
-        'pending': 'Pending',
-        'matched': 'Matched',
-        'payable': 'Payable by Check'
-    };
-    return statusMap[status] || 'Pending';
-}
-
-function renderTransactionsListBills(transactions) {
-    const transactionsList = document.getElementById('transactions-list-bills');
+function showUploadSuccess(message) {
+    const progress = document.getElementById('upload-progress');
+    const currentFile = document.getElementById('current-file');
     
-    if (!transactions || transactions.length === 0) {
-        transactionsList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-file-csv"></i>
-                <p>No transactions loaded</p>
-                <button class="btn btn-primary" onclick="showCsvUploadModal()">
-                    Upload CSV
-                </button>
-            </div>
-        `;
-        return;
+    if (progress) {
+        progress.className = 'upload-progress success';
     }
-    
-    const transactionsHtml = transactions.map((transaction, index) => `
-        <div class="transaction-item-bills" data-index="${index}" onclick="selectTransactionForBill(${index})">
-            <div class="transaction-vendor">${transaction.vendor}</div>
-            <div class="transaction-amount">$${transaction.amount}</div>
-            <div class="transaction-date">${transaction.date}</div>
-        </div>
-    `).join('');
-    
-    transactionsList.innerHTML = transactionsHtml;
-}
-
-function setupBillsEventListeners() {
-    // Bills search
-    const billsSearch = document.getElementById('bills-search');
-    if (billsSearch) {
-        billsSearch.addEventListener('input', debounce(function() {
-            filterBills(this.value);
-        }, 300));
-    }
-    
-    // Status filter
-    const statusFilter = document.getElementById('bills-status-filter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            filterBillsByStatus(this.value);
-        });
-    }
-    
-    // Transaction search
-    const transactionSearch = document.getElementById('transaction-search-bills');
-    if (transactionSearch) {
-        transactionSearch.addEventListener('input', debounce(function() {
-            filterTransactionsBills(this.value);
-        }, 300));
-    }
-    
-    // Action buttons
-    const connectBtn = document.getElementById('connect-transaction-btn');
-    if (connectBtn) {
-        connectBtn.addEventListener('click', connectBillToTransaction);
-    }
-    
-    const payableBtn = document.getElementById('mark-payable-btn');
-    if (payableBtn) {
-        payableBtn.addEventListener('click', markBillAsPayable);
-    }
-    
-    const saveNotesBtn = document.getElementById('save-notes-btn');
-    if (saveNotesBtn) {
-        saveNotesBtn.addEventListener('click', saveBillNotes);
+    if (currentFile) {
+        currentFile.textContent = message;
     }
 }
 
-let selectedBill = null;
-let selectedTransactionIndex = null;
-
-function selectBill(billId) {
-    // Update selected bill
-    selectedBill = billId;
+function showUploadError(message) {
+    const progress = document.getElementById('upload-progress');
+    const currentFile = document.getElementById('current-file');
     
-    // Update UI
-    document.querySelectorAll('.bill-item').forEach(item => {
-        item.classList.remove('selected');
-    });
-    document.querySelector(`[data-bill-id="${billId}"]`).classList.add('selected');
-    
-    // Load bill details
-    loadBillDetails(billId);
-    
-    // Enable action buttons
-    document.getElementById('connect-transaction-btn').disabled = false;
-    document.getElementById('mark-payable-btn').disabled = false;
-    document.getElementById('save-notes-btn').disabled = false;
-}
-
-async function loadBillDetails(billId) {
-    try {
-        // In a real implementation, this would fetch bill details from API
-        // For now, we'll simulate the data
-        const billData = {
-            id: billId,
-            filename: 'ProjectName VendorName 12-15-24 INV-001 $150.00.pdf',
-            project_name: 'ProjectName',
-            vendor_name: 'VendorName',
-            bill_date: '2024-12-15',
-            bill_number: 'INV-001',
-            amount: 150.00,
-            status: 'pending',
-            notes: 'Sample bill notes'
-        };
-        
-        // Update preview
-        document.getElementById('preview-billname').textContent = billData.filename;
-        
-        // Update bill info display
-        const billInfoDisplay = document.getElementById('bill-info-display');
-        billInfoDisplay.innerHTML = `
-            <div class="bill-info-grid">
-                <div class="bill-info-item">
-                    <div class="bill-info-label">Project</div>
-                    <div class="bill-info-value">${billData.project_name}</div>
-                </div>
-                <div class="bill-info-item">
-                    <div class="bill-info-label">Vendor</div>
-                    <div class="bill-info-value">${billData.vendor_name}</div>
-                </div>
-                <div class="bill-info-item">
-                    <div class="bill-info-label">Bill Date</div>
-                    <div class="bill-info-value">${billData.bill_date}</div>
-                </div>
-                <div class="bill-info-item">
-                    <div class="bill-info-label">Bill Number</div>
-                    <div class="bill-info-value">${billData.bill_number}</div>
-                </div>
-                <div class="bill-info-item">
-                    <div class="bill-info-label">Amount</div>
-                    <div class="bill-info-value">$${billData.amount.toFixed(2)}</div>
-                </div>
-                <div class="bill-info-item">
-                    <div class="bill-info-label">Status</div>
-                    <div class="bill-info-value">${getStatusText(billData.status)}</div>
-                </div>
-            </div>
-        `;
-        
-        // Update status indicator
-        updateBillStatus(billData.status);
-        
-        // Update notes
-        document.getElementById('bill-notes').value = billData.notes || '';
-        
-        // Show file preview
-        showBillFilePreview(billData.filename);
-        
-    } catch (error) {
-        console.error('Error loading bill details:', error);
-        showToast('error', 'Error', 'Failed to load bill details');
+    if (progress) {
+        progress.className = 'upload-progress error';
+    }
+    if (currentFile) {
+        currentFile.textContent = message;
     }
 }
 
-function updateBillStatus(status) {
-    const statusIndicator = document.getElementById('bill-status-indicator');
-    statusIndicator.innerHTML = `<span class="status-badge ${status}">${getStatusText(status)}</span>`;
-}
-
-function showBillFilePreview(filename) {
-    const previewArea = document.getElementById('bill-file-preview-area');
-    const ext = filename.split('.').pop().toLowerCase();
-    
-    if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'].includes(ext)) {
-        previewArea.innerHTML = `
-            <div class="preview-placeholder">
-                <i class="fas fa-file-image"></i>
-                <p>Bill Image: ${filename}</p>
-                <small>Preview would show the actual bill image here</small>
-            </div>
-        `;
-    } else if (ext === 'pdf') {
-        previewArea.innerHTML = `
-            <div class="preview-placeholder">
-                <i class="fas fa-file-pdf"></i>
-                <p>Bill PDF: ${filename}</p>
-                <small>Preview would show the PDF here</small>
-            </div>
-        `;
-    } else {
-        previewArea.innerHTML = `
-            <div class="preview-placeholder">
-                <i class="${getFileIcon(filename)}"></i>
-                <p>Bill File: ${filename}</p>
-                <small>Preview not available for this file type</small>
-            </div>
-        `;
+function hideUploadProgress() {
+    const progress = document.getElementById('upload-progress');
+    if (progress) {
+        progress.style.display = 'none';
     }
-}
-
-function selectTransactionForBill(index) {
-    // Update selected transaction
-    selectedTransactionIndex = index;
-    
-    // Update UI
-    document.querySelectorAll('.transaction-item-bills').forEach(item => {
-        item.classList.remove('selected');
-    });
-    document.querySelector(`[data-index="${index}"]`).classList.add('selected');
-}
-
-async function connectBillToTransaction() {
-    if (!selectedBill || selectedTransactionIndex === null) {
-        showToast('error', 'Selection Required', 'Please select both a bill and a transaction');
-        return;
-    }
-    
-    try {
-        showLoading();
-        
-        const transaction = transactions[selectedTransactionIndex];
-        
-        // In a real implementation, this would call your API to connect the bill to the transaction
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        showToast('success', 'Connected', `Bill connected to transaction: ${transaction.vendor} - $${transaction.amount}`);
-        
-        // Update bill status
-        updateBillStatus('matched');
-        
-        // Refresh bills list
-        loadBillsData();
-        
-    } catch (error) {
-        console.error('Error connecting bill to transaction:', error);
-        showToast('error', 'Connection Error', error.message);
-    } finally {
-        hideLoading();
-    }
-}
-
-async function markBillAsPayable() {
-    if (!selectedBill) {
-        showToast('error', 'No Bill Selected', 'Please select a bill first');
-        return;
-    }
-    
-    try {
-        showLoading();
-        
-        // In a real implementation, this would call your API to mark the bill as payable
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        showToast('success', 'Marked as Payable', 'Bill marked for check payment');
-        
-        // Update bill status
-        updateBillStatus('payable');
-        
-        // Refresh bills list
-        loadBillsData();
-        
-    } catch (error) {
-        console.error('Error marking bill as payable:', error);
-        showToast('error', 'Update Error', error.message);
-    } finally {
-        hideLoading();
-    }
-}
-
-async function saveBillNotes() {
-    if (!selectedBill) {
-        showToast('error', 'No Bill Selected', 'Please select a bill first');
-        return;
-    }
-    
-    const notes = document.getElementById('bill-notes').value;
-    
-    try {
-        showLoading();
-        
-        // In a real implementation, this would call your API to save the notes
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        showToast('success', 'Notes Saved', 'Bill notes updated successfully');
-        
-    } catch (error) {
-        console.error('Error saving bill notes:', error);
-        showToast('error', 'Save Error', error.message);
-    } finally {
-        hideLoading();
-    }
-}
-
-function filterBills(query) {
-    const billItems = document.querySelectorAll('.bill-item');
-    
-    billItems.forEach(item => {
-        const billName = item.querySelector('.bill-name').textContent.toLowerCase();
-        const billMeta = item.querySelector('.bill-meta').textContent.toLowerCase();
-        
-        if (billName.includes(query.toLowerCase()) || billMeta.includes(query.toLowerCase())) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-}
-
-function filterBillsByStatus(status) {
-    const billItems = document.querySelectorAll('.bill-item');
-    
-    if (!status) {
-        // Show all bills
-        billItems.forEach(item => {
-            item.style.display = 'flex';
-        });
-        return;
-    }
-    
-    billItems.forEach(item => {
-        const billStatus = item.querySelector('.bill-status').classList.contains(status);
-        item.style.display = billStatus ? 'flex' : 'none';
-    });
-}
-
-function filterTransactionsBills(query) {
-    const transactionItems = document.querySelectorAll('.transaction-item-bills');
-    
-    transactionItems.forEach(item => {
-        const vendor = item.querySelector('.transaction-vendor').textContent.toLowerCase();
-        const amount = item.querySelector('.transaction-amount').textContent.toLowerCase();
-        
-        if (vendor.includes(query.toLowerCase()) || amount.includes(query.toLowerCase())) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
-    });
 } 
