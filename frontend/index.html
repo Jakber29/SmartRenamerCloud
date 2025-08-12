@@ -46,6 +46,10 @@
                         <i class="fas fa-edit"></i>
                         File Renaming
                     </a>
+                    <a href="#" class="nav-item" data-page="bills">
+                        <i class="fas fa-receipt"></i>
+                        Bills
+                    </a>
                     <a href="#" class="nav-item" data-page="dashboard">
                         <i class="fas fa-tachometer-alt"></i>
                         Dashboard
@@ -302,6 +306,126 @@
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bills Page -->
+                <div id="bills-page" class="page">
+                    <div class="page-header">
+                        <h2>Bills Management</h2>
+                        <p>Connect bills to transactions or mark as payable by check</p>
+                    </div>
+                    
+                    <div class="bills-container">
+                        <!-- Bills List (Left Side) -->
+                        <div class="bills-panel">
+                            <div class="bills-header">
+                                <h3>Bills</h3>
+                                <div class="bills-count" id="bills-count">0 bills</div>
+                            </div>
+                            <div class="bills-search">
+                                <input type="text" id="bills-search" placeholder="Search bills..." class="search-input">
+                            </div>
+                            <div class="bills-filters">
+                                <select id="bills-status-filter" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="matched">Matched</option>
+                                    <option value="payable">Payable by Check</option>
+                                </select>
+                            </div>
+                            <div id="bills-list" class="bills-list">
+                                <div class="empty-state">
+                                    <i class="fas fa-receipt"></i>
+                                    <p>No bills available</p>
+                                    <button class="btn btn-primary" onclick="navigateToPage('renaming')">
+                                        Rename Files First
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bill Preview (Center) -->
+                        <div class="bill-preview-panel">
+                            <div class="preview-header">
+                                <h3>Bill Preview</h3>
+                                <div class="preview-billname" id="preview-billname">Select a bill to preview</div>
+                            </div>
+                            
+                            <!-- Bill Information Display -->
+                            <div class="bill-info-display" id="bill-info-display">
+                                <div class="info-placeholder">
+                                    <i class="fas fa-receipt"></i>
+                                    <p>Select a bill from the list to view details</p>
+                                </div>
+                            </div>
+                            
+                            <!-- File Preview Area -->
+                            <div class="bill-file-preview-area" id="bill-file-preview-area">
+                                <div class="preview-placeholder">
+                                    <i class="fas fa-file-alt"></i>
+                                    <p>Select a bill to preview the file</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bill Actions (Right Side) -->
+                        <div class="bill-actions-panel">
+                            <div class="actions-header">
+                                <h3>Bill Actions</h3>
+                            </div>
+                            
+                            <div class="bill-actions-content">
+                                <!-- Bill Status -->
+                                <div class="bill-status-section">
+                                    <h4>Bill Status</h4>
+                                    <div class="status-indicator" id="bill-status-indicator">
+                                        <span class="status-badge pending">Pending</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Connect to Transaction -->
+                                <div class="transaction-section">
+                                    <h4>Connect to Transaction</h4>
+                                    <div class="transaction-search">
+                                        <input type="text" id="transaction-search-bills" placeholder="Search transactions..." class="search-input">
+                                    </div>
+                                    <div id="transactions-list-bills" class="transactions-list-bills">
+                                        <div class="empty-state">
+                                            <i class="fas fa-file-csv"></i>
+                                            <p>No transactions loaded</p>
+                                            <button class="btn btn-primary" onclick="showCsvUploadModal()">
+                                                Upload CSV
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-full" id="connect-transaction-btn" disabled>
+                                        <i class="fas fa-link"></i>
+                                        Connect to Selected Transaction
+                                    </button>
+                                </div>
+                                
+                                <!-- Mark as Payable -->
+                                <div class="payable-section">
+                                    <h4>Mark as Payable by Check</h4>
+                                    <p class="section-description">Mark this bill for manual check payment</p>
+                                    <button class="btn btn-secondary btn-full" id="mark-payable-btn" disabled>
+                                        <i class="fas fa-check"></i>
+                                        Mark as Payable by Check
+                                    </button>
+                                </div>
+                                
+                                <!-- Bill Notes -->
+                                <div class="notes-section">
+                                    <h4>Notes</h4>
+                                    <textarea id="bill-notes" placeholder="Add notes about this bill..." rows="3"></textarea>
+                                    <button class="btn btn-outline btn-full" id="save-notes-btn" disabled>
+                                        <i class="fas fa-save"></i>
+                                        Save Notes
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

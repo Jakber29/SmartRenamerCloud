@@ -69,6 +69,9 @@ function navigateToPage(page) {
         case 'renaming':
             loadRenamingData();
             break;
+        case 'bills':
+            loadBillsData();
+            break;
         case 'dashboard':
             loadDashboardData();
             break;
@@ -1313,6 +1316,408 @@ function filterFilesRenaming(query) {
         const filename = item.getAttribute('data-filename').toLowerCase();
         if (filename.includes(query.toLowerCase())) {
             item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+} 
+
+// Bills Page
+async function loadBillsData() {
+    try {
+        const [billsData, transactionsData] = await Promise.all([
+            apiCall('/api/bills'),
+            apiCall('/api/transactions')
+        ]);
+        
+        // Store data globally
+        transactions = transactionsData.transactions;
+        
+        // Render bills list
+        renderBillsList(billsData.bills);
+        
+        // Render transactions list
+        renderTransactionsListBills(transactions);
+        
+        // Set up event listeners
+        setupBillsEventListeners();
+        
+    } catch (error) {
+        console.error('Error loading bills data:', error);
+    }
+}
+
+function renderBillsList(bills) {
+    const billsList = document.getElementById('bills-list');
+    const billsCount = document.getElementById('bills-count');
+    
+    if (!bills || bills.length === 0) {
+        billsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-receipt"></i>
+                <p>No bills available</p>
+                <button class="btn btn-primary" onclick="navigateToPage('renaming')">
+                    Rename Files First
+                </button>
+            </div>
+        `;
+        billsCount.textContent = '0 bills';
+        return;
+    }
+    
+    billsCount.textContent = `${bills.length} bill${bills.length !== 1 ? 's' : ''}`;
+    
+    const billsHtml = bills.map(bill => `
+        <div class="bill-item" data-bill-id="${bill.id}" onclick="selectBill('${bill.id}')">
+            <div class="bill-icon">
+                <i class="${getFileIcon(bill.filename)}"></i>
+            </div>
+            <div class="bill-info">
+                <div class="bill-name">${bill.filename}</div>
+                <div class="bill-meta">${bill.vendor_name} • $${bill.amount}</div>
+                <div class="bill-status ${bill.status}">${getStatusText(bill.status)}</div>
+            </div>
+        </div>
+    `).join('');
+    
+    billsList.innerHTML = billsHtml;
+}
+
+function getStatusText(status) {
+    const statusMap = {
+        'pending': 'Pending',
+        'matched': 'Matched',
+        'payable': 'Payable by Check'
+    };
+    return statusMap[status] || 'Pending';
+}
+
+function renderTransactionsListBills(transactions) {
+    const transactionsList = document.getElementById('transactions-list-bills');
+    
+    if (!transactions || transactions.length === 0) {
+        transactionsList.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-file-csv"></i>
+                <p>No transactions loaded</p>
+                <button class="btn btn-primary" onclick="showCsvUploadModal()">
+                    Upload CSV
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    const transactionsHtml = transactions.map((transaction, index) => `
+        <div class="transaction-item-bills" data-index="${index}" onclick="selectTransactionForBill(${index})">
+            <div class="transaction-vendor">${transaction.vendor}</div>
+            <div class="transaction-amount">$${transaction.amount}</div>
+            <div class="transaction-date">${transaction.date}</div>
+        </div>
+    `).join('');
+    
+    transactionsList.innerHTML = transactionsHtml;
+}
+
+function setupBillsEventListeners() {
+    // Bills search
+    const billsSearch = document.getElementById('bills-search');
+    if (billsSearch) {
+        billsSearch.addEventListener('input', debounce(function() {
+            filterBills(this.value);
+        }, 300));
+    }
+    
+    // Status filter
+    const statusFilter = document.getElementById('bills-status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            filterBillsByStatus(this.value);
+        });
+    }
+    
+    // Transaction search
+    const transactionSearch = document.getElementById('transaction-search-bills');
+    if (transactionSearch) {
+        transactionSearch.addEventListener('input', debounce(function() {
+            filterTransactionsBills(this.value);
+        }, 300));
+    }
+    
+    // Action buttons
+    const connectBtn = document.getElementById('connect-transaction-btn');
+    if (connectBtn) {
+        connectBtn.addEventListener('click', connectBillToTransaction);
+    }
+    
+    const payableBtn = document.getElementById('mark-payable-btn');
+    if (payableBtn) {
+        payableBtn.addEventListener('click', markBillAsPayable);
+    }
+    
+    const saveNotesBtn = document.getElementById('save-notes-btn');
+    if (saveNotesBtn) {
+        saveNotesBtn.addEventListener('click', saveBillNotes);
+    }
+}
+
+let selectedBill = null;
+let selectedTransactionIndex = null;
+
+function selectBill(billId) {
+    // Update selected bill
+    selectedBill = billId;
+    
+    // Update UI
+    document.querySelectorAll('.bill-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    document.querySelector(`[data-bill-id="${billId}"]`).classList.add('selected');
+    
+    // Load bill details
+    loadBillDetails(billId);
+    
+    // Enable action buttons
+    document.getElementById('connect-transaction-btn').disabled = false;
+    document.getElementById('mark-payable-btn').disabled = false;
+    document.getElementById('save-notes-btn').disabled = false;
+}
+
+async function loadBillDetails(billId) {
+    try {
+        // In a real implementation, this would fetch bill details from API
+        // For now, we'll simulate the data
+        const billData = {
+            id: billId,
+            filename: 'ProjectName VendorName 12-15-24 INV-001 $150.00.pdf',
+            project_name: 'ProjectName',
+            vendor_name: 'VendorName',
+            bill_date: '2024-12-15',
+            bill_number: 'INV-001',
+            amount: 150.00,
+            status: 'pending',
+            notes: 'Sample bill notes'
+        };
+        
+        // Update preview
+        document.getElementById('preview-billname').textContent = billData.filename;
+        
+        // Update bill info display
+        const billInfoDisplay = document.getElementById('bill-info-display');
+        billInfoDisplay.innerHTML = `
+            <div class="bill-info-grid">
+                <div class="bill-info-item">
+                    <div class="bill-info-label">Project</div>
+                    <div class="bill-info-value">${billData.project_name}</div>
+                </div>
+                <div class="bill-info-item">
+                    <div class="bill-info-label">Vendor</div>
+                    <div class="bill-info-value">${billData.vendor_name}</div>
+                </div>
+                <div class="bill-info-item">
+                    <div class="bill-info-label">Bill Date</div>
+                    <div class="bill-info-value">${billData.bill_date}</div>
+                </div>
+                <div class="bill-info-item">
+                    <div class="bill-info-label">Bill Number</div>
+                    <div class="bill-info-value">${billData.bill_number}</div>
+                </div>
+                <div class="bill-info-item">
+                    <div class="bill-info-label">Amount</div>
+                    <div class="bill-info-value">$${billData.amount.toFixed(2)}</div>
+                </div>
+                <div class="bill-info-item">
+                    <div class="bill-info-label">Status</div>
+                    <div class="bill-info-value">${getStatusText(billData.status)}</div>
+                </div>
+            </div>
+        `;
+        
+        // Update status indicator
+        updateBillStatus(billData.status);
+        
+        // Update notes
+        document.getElementById('bill-notes').value = billData.notes || '';
+        
+        // Show file preview
+        showBillFilePreview(billData.filename);
+        
+    } catch (error) {
+        console.error('Error loading bill details:', error);
+        showToast('error', 'Error', 'Failed to load bill details');
+    }
+}
+
+function updateBillStatus(status) {
+    const statusIndicator = document.getElementById('bill-status-indicator');
+    statusIndicator.innerHTML = `<span class="status-badge ${status}">${getStatusText(status)}</span>`;
+}
+
+function showBillFilePreview(filename) {
+    const previewArea = document.getElementById('bill-file-preview-area');
+    const ext = filename.split('.').pop().toLowerCase();
+    
+    if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'].includes(ext)) {
+        previewArea.innerHTML = `
+            <div class="preview-placeholder">
+                <i class="fas fa-file-image"></i>
+                <p>Bill Image: ${filename}</p>
+                <small>Preview would show the actual bill image here</small>
+            </div>
+        `;
+    } else if (ext === 'pdf') {
+        previewArea.innerHTML = `
+            <div class="preview-placeholder">
+                <i class="fas fa-file-pdf"></i>
+                <p>Bill PDF: ${filename}</p>
+                <small>Preview would show the PDF here</small>
+            </div>
+        `;
+    } else {
+        previewArea.innerHTML = `
+            <div class="preview-placeholder">
+                <i class="${getFileIcon(filename)}"></i>
+                <p>Bill File: ${filename}</p>
+                <small>Preview not available for this file type</small>
+            </div>
+        `;
+    }
+}
+
+function selectTransactionForBill(index) {
+    // Update selected transaction
+    selectedTransactionIndex = index;
+    
+    // Update UI
+    document.querySelectorAll('.transaction-item-bills').forEach(item => {
+        item.classList.remove('selected');
+    });
+    document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+}
+
+async function connectBillToTransaction() {
+    if (!selectedBill || selectedTransactionIndex === null) {
+        showToast('error', 'Selection Required', 'Please select both a bill and a transaction');
+        return;
+    }
+    
+    try {
+        showLoading();
+        
+        const transaction = transactions[selectedTransactionIndex];
+        
+        // In a real implementation, this would call your API to connect the bill to the transaction
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        showToast('success', 'Connected', `Bill connected to transaction: ${transaction.vendor} - $${transaction.amount}`);
+        
+        // Update bill status
+        updateBillStatus('matched');
+        
+        // Refresh bills list
+        loadBillsData();
+        
+    } catch (error) {
+        console.error('Error connecting bill to transaction:', error);
+        showToast('error', 'Connection Error', error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function markBillAsPayable() {
+    if (!selectedBill) {
+        showToast('error', 'No Bill Selected', 'Please select a bill first');
+        return;
+    }
+    
+    try {
+        showLoading();
+        
+        // In a real implementation, this would call your API to mark the bill as payable
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        showToast('success', 'Marked as Payable', 'Bill marked for check payment');
+        
+        // Update bill status
+        updateBillStatus('payable');
+        
+        // Refresh bills list
+        loadBillsData();
+        
+    } catch (error) {
+        console.error('Error marking bill as payable:', error);
+        showToast('error', 'Update Error', error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+async function saveBillNotes() {
+    if (!selectedBill) {
+        showToast('error', 'No Bill Selected', 'Please select a bill first');
+        return;
+    }
+    
+    const notes = document.getElementById('bill-notes').value;
+    
+    try {
+        showLoading();
+        
+        // In a real implementation, this would call your API to save the notes
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        showToast('success', 'Notes Saved', 'Bill notes updated successfully');
+        
+    } catch (error) {
+        console.error('Error saving bill notes:', error);
+        showToast('error', 'Save Error', error.message);
+    } finally {
+        hideLoading();
+    }
+}
+
+function filterBills(query) {
+    const billItems = document.querySelectorAll('.bill-item');
+    
+    billItems.forEach(item => {
+        const billName = item.querySelector('.bill-name').textContent.toLowerCase();
+        const billMeta = item.querySelector('.bill-meta').textContent.toLowerCase();
+        
+        if (billName.includes(query.toLowerCase()) || billMeta.includes(query.toLowerCase())) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function filterBillsByStatus(status) {
+    const billItems = document.querySelectorAll('.bill-item');
+    
+    if (!status) {
+        // Show all bills
+        billItems.forEach(item => {
+            item.style.display = 'flex';
+        });
+        return;
+    }
+    
+    billItems.forEach(item => {
+        const billStatus = item.querySelector('.bill-status').classList.contains(status);
+        item.style.display = billStatus ? 'flex' : 'none';
+    });
+}
+
+function filterTransactionsBills(query) {
+    const transactionItems = document.querySelectorAll('.transaction-item-bills');
+    
+    transactionItems.forEach(item => {
+        const vendor = item.querySelector('.transaction-vendor').textContent.toLowerCase();
+        const amount = item.querySelector('.transaction-amount').textContent.toLowerCase();
+        
+        if (vendor.includes(query.toLowerCase()) || amount.includes(query.toLowerCase())) {
+            item.style.display = 'block';
         } else {
             item.style.display = 'none';
         }
