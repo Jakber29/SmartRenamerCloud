@@ -1019,13 +1019,10 @@ async function loadRenamingData() {
         // Store data globally
         projects = projectsData.projects;
         vendors = vendorsData.vendors;
+        filesList = filesData.files || [];
         
         // Render files list
-        renderFilesListRenaming(filesData.files);
-        
-        // Populate form dropdowns
-        populateProjectDropdown();
-        populateVendorDropdown();
+        renderFilesListRenaming(filesList);
         
         // Set up form event listeners
         setupRenamingFormListeners();
@@ -1037,7 +1034,7 @@ async function loadRenamingData() {
 
 function renderFilesListRenaming(files) {
     const filesList = document.getElementById('files-list-renaming');
-    const filesCount = document.getElementById('files-count');
+    const filesCount = document.getElementById('files-count-number');
     
     if (!files || files.length === 0) {
         filesList.innerHTML = `
@@ -1049,14 +1046,17 @@ function renderFilesListRenaming(files) {
                 </button>
             </div>
         `;
-        filesCount.textContent = '0 files';
+        filesCount.textContent = '0';
         return;
     }
     
-    filesCount.textContent = `${files.length} file${files.length !== 1 ? 's' : ''}`;
+    filesCount.textContent = files.length;
     
-    const filesHtml = files.map(file => `
-        <div class="file-item-renaming" data-filename="${file.name}" onclick="selectFileForRenaming('${file.name}')">
+    const filesHtml = files.map((file, index) => `
+        <div class="file-item-renaming" data-filename="${file.name}" data-index="${index}" onclick="selectFileForRenaming('${file.name}', ${index})">
+            <div class="file-flag">
+                <i class="fas fa-flag"></i>
+            </div>
             <div class="file-icon">
                 <i class="${getFileIcon(file.name)}"></i>
             </div>
@@ -1064,7 +1064,6 @@ function renderFilesListRenaming(files) {
                 <div class="file-name">${file.name}</div>
                 <div class="file-meta">${formatFileSize(file.size || 0)} • ${getFileType(file.name)}</div>
             </div>
-            <div class="file-status">${file.renamed ? 'Renamed' : 'Pending'}</div>
         </div>
     `).join('');
     
@@ -1155,18 +1154,19 @@ function setupRenamingFormListeners() {
 
 let selectedFile = null;
 
-function selectFileForRenaming(filename) {
+function selectFileForRenaming(filename, index) {
     // Update selected file
     selectedFile = filename;
+    currentFileIndex = index;
     
     // Update UI
     document.querySelectorAll('.file-item-renaming').forEach(item => {
         item.classList.remove('selected');
     });
-    document.querySelector(`[data-filename="${filename}"]`).classList.add('selected');
+    document.querySelector(`[data-index="${index}"]`).classList.add('selected');
     
-    // Update preview
-    document.getElementById('preview-filename').textContent = filename;
+    // Update preview title
+    document.getElementById('preview-title').textContent = filename;
     
     // Show file preview
     showFilePreview(filename);
@@ -1174,8 +1174,15 @@ function selectFileForRenaming(filename) {
     // Enable rename button
     document.getElementById('rename-btn').disabled = false;
     
-    // Update filename preview
-    updateFilenamePreview();
+    // Load file data if available
+    loadFileData(filename);
+}
+
+function loadFileData(filename) {
+    // In a real implementation, this would load saved data for the file
+    // For now, we'll clear the form
+    document.getElementById('renaming-form').reset();
+    document.getElementById('file-notes').value = '';
 }
 
 function showFilePreview(filename) {
@@ -1183,7 +1190,6 @@ function showFilePreview(filename) {
     const ext = filename.split('.').pop().toLowerCase();
     
     if (['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff'].includes(ext)) {
-        // For images, show preview (in real app, this would be the actual file URL)
         previewArea.innerHTML = `
             <div class="preview-placeholder">
                 <i class="fas fa-file-image"></i>
@@ -1207,6 +1213,75 @@ function showFilePreview(filename) {
                 <small>Preview not available for this file type</small>
             </div>
         `;
+    }
+}
+
+// Navigation functions
+function previousFile() {
+    if (currentFileIndex > 0) {
+        const prevFile = filesList[currentFileIndex - 1];
+        selectFileForRenaming(prevFile.name, currentFileIndex - 1);
+    }
+}
+
+function nextFile() {
+    if (currentFileIndex < filesList.length - 1) {
+        const nextFile = filesList[currentFileIndex + 1];
+        selectFileForRenaming(nextFile.name, currentFileIndex + 1);
+    }
+}
+
+// Control functions
+function selectFolder() {
+    showToast('info', 'Select Folder', 'Folder selection will be implemented');
+}
+
+function mergeFiles() {
+    showToast('info', 'Merge Files', 'File merging will be implemented');
+}
+
+function refreshFiles() {
+    loadRenamingData();
+    showToast('success', 'Files Refreshed', 'File list has been updated');
+}
+
+function showDatePicker() {
+    // Create a simple date picker
+    const input = document.getElementById('bill-date');
+    input.type = 'date';
+    input.focus();
+    input.click();
+    
+    // Reset to text after selection
+    setTimeout(() => {
+        input.type = 'text';
+    }, 100);
+}
+
+function setDefaultInvoice() {
+    const input = document.getElementById('bill-number');
+    const today = new Date();
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const year = today.getFullYear().toString().slice(-2);
+    input.value = `INV-${month}${day}${year}-001`;
+}
+
+function revealInFinder() {
+    if (selectedFile) {
+        showToast('info', 'Reveal in Finder', `Would reveal ${selectedFile} in file explorer`);
+    } else {
+        showToast('error', 'No File Selected', 'Please select a file first');
+    }
+}
+
+function saveNotes() {
+    const notes = document.getElementById('file-notes').value;
+    if (selectedFile) {
+        // In a real implementation, this would save notes to the backend
+        showToast('success', 'Notes Saved', 'File notes have been saved');
+    } else {
+        showToast('error', 'No File Selected', 'Please select a file first');
     }
 }
 
@@ -1274,32 +1349,37 @@ async function handleFileRename(event) {
         bill_date: formData.get('bill-date'),
         bill_number: formData.get('bill-number'),
         bill_amount: parseFloat(formData.get('bill-amount')),
-        description: formData.get('file-description') || ''
+        notes: document.getElementById('file-notes').value || ''
     };
     
     try {
         showLoading();
         
         // In a real implementation, this would call your API to rename the file
-        // For now, we'll simulate the rename
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         showToast('success', 'File Renamed', `Successfully renamed "${selectedFile}"`);
         
-        // Clear form and refresh file list
-        clearForm();
-        loadRenamingData();
+        // Clear form
+        event.target.reset();
+        document.getElementById('file-notes').value = '';
         
-        // Deselect file
-        selectedFile = null;
-        document.getElementById('rename-btn').disabled = true;
-        document.getElementById('preview-filename').textContent = 'Select a file to preview';
-        document.getElementById('file-preview-area').innerHTML = `
-            <div class="preview-placeholder">
-                <i class="fas fa-file-alt"></i>
-                <p>Select a file from the list to preview</p>
-            </div>
-        `;
+        // Move to next file if available
+        if (currentFileIndex < filesList.length - 1) {
+            nextFile();
+        } else {
+            // Reset selection
+            selectedFile = null;
+            currentFileIndex = -1;
+            document.getElementById('rename-btn').disabled = true;
+            document.getElementById('preview-title').textContent = 'NO FILE SELECTED';
+            document.getElementById('file-preview-area').innerHTML = `
+                <div class="preview-placeholder">
+                    <i class="fas fa-file-alt"></i>
+                    <p>Select a file to preview</p>
+                </div>
+            `;
+        }
         
     } catch (error) {
         console.error('Error renaming file:', error);

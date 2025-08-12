@@ -212,12 +212,73 @@
                         <!-- Files List (Left Side) -->
                         <div class="files-panel">
                             <div class="files-header">
-                                <h3>Files to Rename</h3>
-                                <div class="files-count" id="files-count">0 files</div>
+                                <h3>Book Assist</h3>
+                                <button class="menu-toggle">
+                                    <i class="fas fa-bars"></i>
+                                </button>
                             </div>
-                            <div class="files-search">
-                                <input type="text" id="files-search" placeholder="Search files..." class="search-input">
+                            
+                            <!-- File Selection Controls -->
+                            <div class="file-controls">
+                                <div class="control-group">
+                                    <select class="control-select" id="auto-select-method">
+                                        <option>Auto-Select Best Method</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <button class="btn btn-primary btn-full" onclick="selectFolder()">
+                                        <i class="fas fa-folder-open"></i>
+                                        Select Folder
+                                    </button>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <span class="tag">XCC Receipts</span>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <div class="search-container">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" id="files-search" placeholder="Search files..." class="search-input">
+                                    </div>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <select class="control-select" id="file-filter">
+                                        <option>All Files</option>
+                                        <option>Flagged Files</option>
+                                        <option>Unflagged Files</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <select class="control-select" id="sort-by">
+                                        <option>Sort by Flagged</option>
+                                        <option>Sort by Name</option>
+                                        <option>Sort by Date</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="control-group">
+                                    <button class="btn btn-secondary btn-full" onclick="mergeFiles()">
+                                        <i class="fas fa-object-group"></i>
+                                        Merge Files
+                                    </button>
+                                </div>
                             </div>
+                            
+                            <!-- Files Count -->
+                            <div class="files-count-section">
+                                <div class="files-count" id="files-count">
+                                    <span id="files-count-number">0</span> files
+                                    <button class="refresh-btn" onclick="refreshFiles()">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Files List -->
                             <div id="files-list-renaming" class="files-list-renaming">
                                 <div class="empty-state">
                                     <i class="fas fa-cloud-upload-alt"></i>
@@ -229,83 +290,111 @@
                             </div>
                         </div>
 
-                        <!-- File Preview and Renaming Form (Center) -->
+                        <!-- File Preview (Center) -->
                         <div class="preview-panel">
                             <div class="preview-header">
-                                <h3>File Preview</h3>
-                                <div class="preview-filename" id="preview-filename">Select a file to preview</div>
-                            </div>
-                            
-                            <!-- New Filename Preview -->
-                            <div class="filename-preview">
-                                <label>New Filename:</label>
-                                <div class="new-filename" id="new-filename">No file selected</div>
+                                <h3 id="preview-title">NO FILE SELECTED</h3>
                             </div>
                             
                             <!-- File Preview Area -->
                             <div class="file-preview-area" id="file-preview-area">
                                 <div class="preview-placeholder">
                                     <i class="fas fa-file-alt"></i>
-                                    <p>Select a file from the list to preview</p>
+                                    <p>Select a file to preview</p>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Renaming Form (Right Side) -->
+                        <!-- Manual Entry Form (Right Side) -->
                         <div class="form-panel">
                             <div class="form-header">
-                                <h3>File Information</h3>
+                                <h3>Manual Entry</h3>
+                                <div class="manual-entry-toggle">
+                                    <input type="checkbox" id="manual-entry-toggle" checked>
+                                    <label for="manual-entry-toggle">Manual Entry</label>
+                                </div>
                             </div>
                             
                             <form id="renaming-form" class="renaming-form">
                                 <div class="form-group">
-                                    <label for="project-name">Project Name *</label>
-                                    <select id="project-name" name="project-name" required>
-                                        <option value="">Select a project...</option>
-                                    </select>
+                                    <label for="project-name">Project</label>
+                                    <input type="text" id="project-name" name="project-name" placeholder="Project name..." required>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="vendor-name">Vendor Name *</label>
-                                    <select id="vendor-name" name="vendor-name" required>
-                                        <option value="">Select a vendor...</option>
-                                    </select>
+                                    <label for="vendor-name">Vendor</label>
+                                    <input type="text" id="vendor-name" name="vendor-name" placeholder="Vendor name..." required>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="bill-date">Bill Date *</label>
-                                    <input type="date" id="bill-date" name="bill-date" required>
+                                    <label for="bill-date">Date</label>
+                                    <div class="date-input-container">
+                                        <input type="text" id="bill-date" name="bill-date" placeholder="MM-DD-YY or click calendar" required>
+                                        <button type="button" class="calendar-btn" onclick="showDatePicker()">
+                                            <i class="fas fa-calendar"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="bill-number">Bill/Invoice Number *</label>
-                                    <input type="text" id="bill-number" name="bill-number" placeholder="e.g., INV-2024-001" required>
+                                    <label for="bill-number">Invoice Number</label>
+                                    <div class="invoice-input-container">
+                                        <input type="text" id="bill-number" name="bill-number" placeholder="Invoice number..." required>
+                                        <button type="button" class="default-btn" onclick="setDefaultInvoice()">
+                                            # Default
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label for="bill-amount">Bill Amount *</label>
+                                    <label for="bill-amount">Total</label>
                                     <div class="amount-input">
                                         <span class="currency-symbol">$</span>
                                         <input type="number" id="bill-amount" name="bill-amount" step="0.01" min="0" placeholder="0.00" required>
                                     </div>
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label for="file-description">Description (Optional)</label>
-                                    <textarea id="file-description" name="file-description" rows="3" placeholder="Additional notes about this file..."></textarea>
+                                <!-- Action Buttons -->
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary btn-full" id="rename-btn" disabled>
+                                        <i class="fas fa-file-signature"></i>
+                                        Rename File
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-full" onclick="revealInFinder()">
+                                        <i class="fas fa-folder-open"></i>
+                                        Reveal in Finder
+                                    </button>
                                 </div>
                                 
-                                <div class="form-actions">
-                                    <button type="button" class="btn btn-secondary" onclick="clearForm()">
-                                        <i class="fas fa-undo"></i>
-                                        Clear
+                                <!-- Navigation -->
+                                <div class="file-navigation">
+                                    <button type="button" class="btn btn-outline" onclick="previousFile()">
+                                        <i class="fas fa-chevron-left"></i>
+                                        Previous
                                     </button>
-                                    <button type="submit" class="btn btn-primary" id="rename-btn" disabled>
-                                        <i class="fas fa-save"></i>
-                                        Rename File
+                                    <button type="button" class="btn btn-outline" onclick="nextFile()">
+                                        Next
+                                        <i class="fas fa-chevron-right"></i>
                                     </button>
                                 </div>
                             </form>
+                            
+                            <!-- Notes Section -->
+                            <div class="notes-section">
+                                <div class="notes-header">
+                                    <h4>Notes</h4>
+                                    <h5>File Notes</h5>
+                                </div>
+                                
+                                <div class="notes-content">
+                                    <textarea id="file-notes" placeholder="Add notes about this file..." rows="4"></textarea>
+                                    <button class="btn btn-outline btn-full" onclick="saveNotes()">
+                                        <i class="fas fa-save"></i>
+                                        Save Notes
+                                    </button>
+                                    <p class="notes-info">Notes are saved with the file metadata</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
