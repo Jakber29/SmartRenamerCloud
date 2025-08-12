@@ -21,11 +21,11 @@
                     Smart Renamer Cloud
                 </h1>
                 <div class="header-actions">
-                    <button class="btn btn-secondary" onclick="showUploadModal()">
+                    <button class="btn btn-primary" onclick="showUploadModal()">
                         <i class="fas fa-upload"></i>
                         Upload Files
                     </button>
-                    <button class="btn btn-primary" onclick="showCsvUploadModal()">
+                    <button class="btn btn-secondary" onclick="showCsvUploadModal()">
                         <i class="fas fa-file-csv"></i>
                         Upload CSV
                     </button>
@@ -38,7 +38,11 @@
             <!-- Sidebar -->
             <aside class="sidebar">
                 <nav class="nav-menu">
-                    <a href="#" class="nav-item active" data-page="dashboard">
+                    <a href="#" class="nav-item active" data-page="admin">
+                        <i class="fas fa-upload"></i>
+                        File Upload
+                    </a>
+                    <a href="#" class="nav-item" data-page="dashboard">
                         <i class="fas fa-tachometer-alt"></i>
                         Dashboard
                     </a>
@@ -66,17 +70,131 @@
                         <i class="fas fa-receipt"></i>
                         Reimbursements
                     </a>
-                    <a href="#" class="nav-item" data-page="admin">
-                        <i class="fas fa-cog"></i>
-                        Admin
-                    </a>
                 </nav>
             </aside>
 
             <!-- Content Area -->
             <div class="content-area">
+                <!-- Admin/File Upload Page (First Page) -->
+                <div id="admin-page" class="page active">
+                    <div class="page-header">
+                        <h2>File Upload Center</h2>
+                        <p>Upload files, folders, or groups of files to get started</p>
+                    </div>
+                    
+                    <div class="upload-center">
+                        <div class="upload-section">
+                            <div class="upload-card">
+                                <div class="upload-card-header">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <h3>Upload Files</h3>
+                                </div>
+                                <div class="upload-card-content">
+                                    <p>Upload individual files or multiple files at once</p>
+                                    <div class="upload-area-large">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Drag and drop files here or click to select</p>
+                                        <input type="file" id="file-input-large" multiple accept=".pdf,.png,.jpg,.jpeg,.gif,.bmp,.tiff,.doc,.docx,.xls,.xlsx,.txt" style="display: none;">
+                                        <button class="btn btn-primary btn-large" onclick="document.getElementById('file-input-large').click()">
+                                            <i class="fas fa-upload"></i>
+                                            Select Files
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="upload-section">
+                            <div class="upload-card">
+                                <div class="upload-card-header">
+                                    <i class="fas fa-folder-open"></i>
+                                    <h3>Upload Folder</h3>
+                                </div>
+                                <div class="upload-card-content">
+                                    <p>Upload an entire folder with all its contents</p>
+                                    <div class="upload-area-large">
+                                        <i class="fas fa-folder-open"></i>
+                                        <p>Drag and drop a folder here or click to select</p>
+                                        <input type="file" id="folder-input" webkitdirectory directory multiple style="display: none;">
+                                        <button class="btn btn-primary btn-large" onclick="document.getElementById('folder-input').click()">
+                                            <i class="fas fa-folder-open"></i>
+                                            Select Folder
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="upload-section">
+                            <div class="upload-card">
+                                <div class="upload-card-header">
+                                    <i class="fas fa-file-csv"></i>
+                                    <h3>Upload CSV Data</h3>
+                                </div>
+                                <div class="upload-card-content">
+                                    <p>Upload transaction data from CSV files</p>
+                                    <div class="upload-area-large">
+                                        <i class="fas fa-file-csv"></i>
+                                        <p>Upload your transaction CSV file</p>
+                                        <input type="file" id="csv-input-large" accept=".csv" style="display: none;">
+                                        <button class="btn btn-primary btn-large" onclick="document.getElementById('csv-input-large').click()">
+                                            <i class="fas fa-file-csv"></i>
+                                            Select CSV File
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="upload-stats">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-number" id="upload-file-count">0</span>
+                                <span class="stat-label">Files Uploaded</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-number" id="upload-transaction-count">0</span>
+                                <span class="stat-label">Transactions</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-number" id="upload-match-count">0</span>
+                                <span class="stat-label">Matched Files</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="upload-actions">
+                        <button class="btn btn-primary" onclick="showUploadModal()">
+                            <i class="fas fa-upload"></i>
+                            Quick Upload
+                        </button>
+                        <button class="btn btn-secondary" onclick="showCsvUploadModal()">
+                            <i class="fas fa-file-csv"></i>
+                            Quick CSV Upload
+                        </button>
+                        <button class="btn btn-outline" onclick="loadUploadData()">
+                            <i class="fas fa-sync"></i>
+                            Refresh Stats
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Dashboard Page -->
-                <div id="dashboard-page" class="page active">
+                <div id="dashboard-page" class="page">
                     <div class="page-header">
                         <h2>Dashboard</h2>
                         <p>Welcome to Smart Renamer Cloud - Your file management solution</p>

@@ -4,7 +4,7 @@
 const API_BASE_URL = 'https://smart-renamer-api.jake-b00.workers.dev'; // Your deployed Worker URL
 
 // Global state
-let currentPage = 'dashboard';
+let currentPage = 'admin'; // Changed from 'dashboard' to 'admin'
 let vendors = [];
 let projects = [];
 let teamMembers = [];
@@ -24,8 +24,8 @@ function initializeApp() {
     // Set up event listeners
     setupEventListeners();
     
-    // Load initial data
-    loadDashboardData();
+    // Load initial data for the admin page
+    loadUploadData();
     
     // Test API connection
     testApi();
@@ -63,6 +63,9 @@ function navigateToPage(page) {
     
     // Load page-specific data
     switch(page) {
+        case 'admin':
+            loadUploadData();
+            break;
         case 'dashboard':
             loadDashboardData();
             break;
@@ -84,9 +87,6 @@ function navigateToPage(page) {
         case 'reimbursements':
             loadReimbursementsData();
             break;
-        case 'admin':
-            loadAdminData();
-            break;
     }
 }
 
@@ -98,14 +98,105 @@ function setupEventListeners() {
         fileInput.addEventListener('change', handleFileUpload);
     }
     
+    // Large file input for admin page
+    const fileInputLarge = document.getElementById('file-input-large');
+    if (fileInputLarge) {
+        fileInputLarge.addEventListener('change', handleFileUpload);
+    }
+    
+    // Folder input
+    const folderInput = document.getElementById('folder-input');
+    if (folderInput) {
+        folderInput.addEventListener('change', handleFolderUpload);
+    }
+    
     // CSV upload
     const csvInput = document.getElementById('csv-input');
     if (csvInput) {
         csvInput.addEventListener('change', handleCsvUpload);
     }
     
+    // Large CSV input for admin page
+    const csvInputLarge = document.getElementById('csv-input-large');
+    if (csvInputLarge) {
+        csvInputLarge.addEventListener('change', handleCsvUpload);
+    }
+    
+    // Setup drag and drop
+    setupDragAndDrop();
+    
     // Search inputs
     setupSearchListeners();
+}
+
+// Drag and Drop Setup
+function setupDragAndDrop() {
+    const uploadAreas = document.querySelectorAll('.upload-area-large');
+    
+    uploadAreas.forEach(area => {
+        area.addEventListener('dragover', handleDragOver);
+        area.addEventListener('dragleave', handleDragLeave);
+        area.addEventListener('drop', handleDrop);
+        area.addEventListener('click', handleUploadAreaClick);
+    });
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.style.borderColor = '#1e3a8a';
+    e.currentTarget.style.background = 'rgba(30, 58, 138, 0.05)';
+}
+
+function handleDragLeave(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    e.currentTarget.style.borderColor = '#e2e8f0';
+    e.currentTarget.style.background = '#f1f5f9';
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const files = e.dataTransfer.files;
+    if (!files || files.length === 0) return;
+    
+    // Determine which type of upload this is based on the upload area
+    const uploadArea = e.currentTarget;
+    const isFolderUpload = uploadArea.closest('.upload-section').querySelector('h3').textContent.includes('Folder');
+    const isCsvUpload = uploadArea.closest('.upload-section').querySelector('h3').textContent.includes('CSV');
+    
+    if (isFolderUpload) {
+        handleFolderUpload({ target: { files: files } });
+    } else if (isCsvUpload) {
+        // Filter for CSV files only
+        const csvFiles = Array.from(files).filter(file => file.name.toLowerCase().endsWith('.csv'));
+        if (csvFiles.length > 0) {
+            handleCsvUpload({ target: { files: csvFiles } });
+        } else {
+            showToast('error', 'Invalid File Type', 'Please drop a CSV file');
+        }
+    } else {
+        handleFileUpload({ target: { files: files } });
+    }
+    
+    // Reset styling
+    uploadArea.style.borderColor = '#e2e8f0';
+    uploadArea.style.background = '#f1f5f9';
+}
+
+function handleUploadAreaClick(e) {
+    // Don't trigger if clicking on the button
+    if (e.target.tagName === 'BUTTON' || e.target.closest('button')) {
+        return;
+    }
+    
+    const uploadArea = e.currentTarget;
+    const input = uploadArea.querySelector('input[type="file"]');
+    if (input) {
+        input.click();
+    }
 }
 
 function setupSearchListeners() {
@@ -543,11 +634,70 @@ function renderReimbursementsList(reimbursements) {
 }
 
 // Admin Page
-async function loadAdminData() {
+async function loadUploadData() {
     try {
-        await testApi();
+        const [filesData, transactionsData, matchesData] = await Promise.all([
+            apiCall('/api/files'),
+            apiCall('/api/transactions'),
+            apiCall('/api/manual-matches')
+        ]);
+        
+        // Update upload stats
+        document.getElementById('upload-file-count').textContent = filesData.files ? filesData.files.length : 0;
+        document.getElementById('upload-transaction-count').textContent = transactionsData.transactions ? transactionsData.transactions.length : 0;
+        document.getElementById('upload-match-count').textContent = matchesData.matches ? Object.keys(matchesData.matches).length : 0;
+        
+        // Store data globally
+        transactions = transactionsData.transactions;
+        manualMatches = matchesData.matches;
+        
     } catch (error) {
-        console.error('Error loading admin data:', error);
+        console.error('Error loading upload data:', error);
+        // Set default values if API fails
+        document.getElementById('upload-file-count').textContent = '0';
+        document.getElementById('upload-transaction-count').textContent = '0';
+        document.getElementById('upload-match-count').textContent = '0';
+    }
+}
+
+// Folder Upload
+async function handleFolderUpload(event) {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+    
+    try {
+        showLoading();
+        
+        // Process folder structure
+        const folderStructure = {};
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const pathParts = file.webkitRelativePath.split('/');
+            const folderName = pathParts[0];
+            
+            if (!folderStructure[folderName]) {
+                folderStructure[folderName] = [];
+            }
+            folderStructure[folderName].push(file);
+        }
+        
+        // Show folder structure info
+        const folderCount = Object.keys(folderStructure).length;
+        const totalFiles = files.length;
+        
+        showToast('success', 'Folder Uploaded', `Uploaded ${folderCount} folder(s) with ${totalFiles} total files`);
+        
+        // Close any open modals
+        closeModal('upload-modal');
+        
+        // Refresh data
+        loadUploadData();
+        
+    } catch (error) {
+        console.error('Error uploading folder:', error);
+        showToast('error', 'Upload Error', error.message);
+    } finally {
+        hideLoading();
     }
 }
 
