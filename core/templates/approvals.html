@@ -287,13 +287,89 @@
   display: block;
 }
 
-.class-select {
+.class-search-container {
+  position: relative;
+}
+
+.class-search {
   width: 100%;
   padding: 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 14px;
   background: white;
+}
+
+.class-search:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.class-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.class-option {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+}
+
+.class-option:hover {
+  background: #f9fafb;
+}
+
+.class-option:last-child {
+  border-bottom: none;
+}
+
+.selected-class {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background: #eff6ff;
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.selected-class-text {
+  font-weight: 500;
+  color: #1e40af;
+}
+
+.clear-class {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.clear-class:hover {
+  background: #e5e7eb;
+  color: #374151;
 }
 
 /* Comments */
@@ -464,13 +540,17 @@
     
     <!-- Class Selection -->
     <div class="class-selection">
-      <label class="class-selection-label" for="class-select">Select Class:</label>
-      <select class="class-select" id="class-select" required>
-        <option value="">Choose a class...</option>
-        {% for class in classes_json %}
-          <option value="{{ class.id }}">{{ class.display_name }}</option>
-        {% endfor %}
-      </select>
+      <label class="class-selection-label" for="class-search">Select Class:</label>
+      <div class="class-search-container">
+        <input type="text" class="class-search" id="class-search" placeholder="Search for a class..." autocomplete="off">
+        <div class="class-dropdown" id="class-dropdown" style="display: none;">
+          <!-- Classes will be populated by JavaScript -->
+        </div>
+      </div>
+      <div class="selected-class" id="selected-class" style="display: none;">
+        <span class="selected-class-text"></span>
+        <button type="button" class="clear-class" onclick="clearClassSelection()">×</button>
+      </div>
     </div>
     
     <!-- Comments -->
@@ -535,7 +615,16 @@ function selectFile(fileId) {
   // Update file preview
   const preview = document.getElementById('file-preview');
   if (file.file_type === '.jpg' || file.file_type === '.jpeg' || file.file_type === '.png') {
-    preview.innerHTML = `<img src="${file.file_url}" alt="File preview" />`;
+    // For images, try to load the actual file
+    const img = new Image();
+    img.onload = function() {
+      preview.innerHTML = `<img src="${file.file_url}" alt="File preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" />`;
+    };
+    img.onerror = function() {
+      // If image fails to load, show icon
+      preview.innerHTML = `<div class="file-preview-icon">🖼️</div>`;
+    };
+    img.src = file.file_url;
   } else {
     const icon = file.file_type === '.pdf' ? '📄' : 
                  (file.file_type === '.doc' || file.file_type === '.docx') ? '📝' : '📁';
@@ -591,15 +680,15 @@ function approveFile() {
     return;
   }
   
-  const classId = document.getElementById('class-select').value;
-  if (!classId) {
+  const selectedClassId = document.getElementById('selected-class').dataset.classId;
+  if (!selectedClassId) {
     showMessage('Please select a class', 'error');
     return;
   }
   
   const comment = document.getElementById('approval-comment').value;
   
-  updateFileApproval(selectedFileId, 'approved', comment, classId);
+  updateFileApproval(selectedFileId, 'approved', comment, selectedClassId);
 }
 
 function rejectFile() {
@@ -608,15 +697,15 @@ function rejectFile() {
     return;
   }
   
-  const classId = document.getElementById('class-select').value;
-  if (!classId) {
+  const selectedClassId = document.getElementById('selected-class').dataset.classId;
+  if (!selectedClassId) {
     showMessage('Please select a class', 'error');
     return;
   }
   
   const comment = document.getElementById('approval-comment').value;
   
-  updateFileApproval(selectedFileId, 'rejected', comment, classId);
+  updateFileApproval(selectedFileId, 'rejected', comment, selectedClassId);
 }
 
 function skipFile() {
@@ -676,7 +765,7 @@ function updateFileApproval(fileId, status, comment, classId) {
       
       // Clear selection
       selectedFileId = null;
-      document.getElementById('class-select').value = '';
+      clearClassSelection();
       document.getElementById('approval-comment').value = '';
       
       // Update file count
@@ -732,6 +821,71 @@ function showMessage(message, type) {
   }, 5000);
 }
 
+// Class search functionality
+function setupClassSearch() {
+  const searchInput = document.getElementById('class-search');
+  const dropdown = document.getElementById('class-dropdown');
+  const selectedClass = document.getElementById('selected-class');
+  
+  searchInput.addEventListener('input', function() {
+    const query = this.value.toLowerCase();
+    if (query.length === 0) {
+      dropdown.style.display = 'none';
+      return;
+    }
+    
+    const filteredClasses = classes.filter(cls => 
+      cls.display_name.toLowerCase().includes(query)
+    );
+    
+    if (filteredClasses.length === 0) {
+      dropdown.innerHTML = '<div class="class-option">No classes found</div>';
+    } else {
+      dropdown.innerHTML = filteredClasses.map(cls => 
+        `<div class="class-option" onclick="selectClass(${cls.id}, '${cls.display_name}')">${cls.display_name}</div>`
+      ).join('');
+    }
+    
+    dropdown.style.display = 'block';
+  });
+  
+  // Hide dropdown when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+function selectClass(classId, className) {
+  const searchInput = document.getElementById('class-search');
+  const dropdown = document.getElementById('class-dropdown');
+  const selectedClass = document.getElementById('selected-class');
+  
+  // Hide search and dropdown
+  searchInput.style.display = 'none';
+  dropdown.style.display = 'none';
+  
+  // Show selected class
+  selectedClass.style.display = 'flex';
+  selectedClass.dataset.classId = classId;
+  selectedClass.querySelector('.selected-class-text').textContent = className;
+}
+
+function clearClassSelection() {
+  const searchInput = document.getElementById('class-search');
+  const dropdown = document.getElementById('class-dropdown');
+  const selectedClass = document.getElementById('selected-class');
+  
+  // Show search input
+  searchInput.style.display = 'block';
+  searchInput.value = '';
+  
+  // Hide selected class
+  selectedClass.style.display = 'none';
+  selectedClass.dataset.classId = '';
+}
+
 // Add touch feedback
 document.addEventListener('DOMContentLoaded', function() {
   const touchElements = document.querySelectorAll('.file-item, .approval-btn');
@@ -744,6 +898,9 @@ document.addEventListener('DOMContentLoaded', function() {
       this.style.transform = '';
     });
   });
+  
+  // Setup class search
+  setupClassSearch();
 });
 </script>
 {% endblock %}
