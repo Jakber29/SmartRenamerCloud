@@ -1,0 +1,2364 @@
+{% extends "base.html" %}
+
+{% block title %}Approvals{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Responsive approvals design - mobile first, desktop enhanced */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: #f5f5f5;
+  overflow-x: hidden;
+}
+
+/* Desktop Layout */
+@media (min-width: 1024px) {
+  body {
+    background: #f5f5f5;
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+  }
+  
+  .approvals-container {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+    background: #f5f5f5;
+    overflow: visible;
+    padding: 20px;
+  }
+  
+  .desktop-layout {
+    display: flex;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    height: calc(100vh - 40px);
+  }
+  
+  .file-list-panel {
+    width: 400px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .approval-panel {
+    flex: 1;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .panel-header {
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    border-radius: 12px 12px 0 0;
+    display: block;
+  }
+  
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: block;
+  }
+  
+  .approval-actions {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    padding: 20px 24px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    box-shadow: none;
+    border-radius: 0 0 12px 12px;
+    z-index: auto;
+  }
+  
+  /* Hide mobile elements on desktop */
+  .mobile-app-container {
+    display: none !important;
+  }
+  
+  /* Desktop-specific improvements */
+  .file-item {
+    transition: all 0.2s ease;
+  }
+  
+  .file-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .approval-btn {
+    min-width: 120px;
+  }
+  
+  .bill-info {
+    margin-bottom: 24px;
+  }
+  
+  .bill-info h4 {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  
+  .bill-info-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  
+  .bill-info-item:last-child {
+    border-bottom: none;
+  }
+}
+
+/* Mobile Layout */
+@media (max-width: 1023px) {
+  body {
+    background: #000;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+  
+  .approvals-container {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow: hidden;
+  }
+  
+  /* Hide desktop elements on mobile */
+  .desktop-layout,
+  .file-list-panel,
+  .approval-panel,
+  .panel-header,
+  .panel-content,
+  .approval-actions {
+    display: none !important;
+  }
+}
+
+/* Base styles for panels (will be overridden by media queries) */
+.file-list-panel {
+  width: 400px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.approval-panel {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.panel-header {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  border-radius: 8px 8px 0 0;
+}
+
+.panel-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Mobile adjustments for panel content */
+@media (max-width: 768px) {
+  .panel-content {
+    padding: 15px;
+  }
+  
+  .panel-header {
+    padding: 15px;
+  }
+}
+
+.file-item {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+}
+
+.file-item:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.1);
+}
+
+.file-item.selected {
+  border-color: #3b82f6;
+  background: #eff6ff;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+}
+
+.file-name {
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.file-details {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.approval-status {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-on-hold {
+  background: #fde68a;
+  color: #92400e;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.approval-content {
+  display: none;
+}
+
+.approval-content.active {
+  display: block;
+}
+
+.bill-info {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.bill-info h4 {
+  margin: 0 0 15px 0;
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.bill-info-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.bill-info-label {
+  font-weight: 500;
+  color: #374151;
+  min-width: 100px;
+}
+
+.bill-info-value {
+  color: #6b7280;
+  flex: 1;
+}
+
+/* Base approval actions styles */
+.approval-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 15px 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+/* Mobile adjustments for approval actions */
+@media (max-width: 768px) {
+  .approval-actions {
+    padding: 12px 15px;
+    gap: 8px;
+  }
+}
+
+.approval-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex: 1;
+  max-width: 150px;
+}
+
+/* Mobile button adjustments */
+@media (max-width: 768px) {
+  .approval-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    max-width: none;
+  }
+}
+
+.btn-approve {
+  background: #10b981;
+  color: white;
+}
+
+.btn-approve:hover {
+  background: #059669;
+}
+
+.btn-hold {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-hold:hover {
+  background: #d97706;
+}
+
+.btn-reject {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-reject:hover {
+  background: #dc2626;
+}
+
+.comment-section {
+  margin-top: 20px;
+}
+
+.comment-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.comment-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.approval-history {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.approval-history h5 {
+  margin: 0 0 10px 0;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.history-item {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 5px;
+}
+
+.no-files {
+  text-align: center;
+  color: #6b7280;
+  padding: 40px 20px;
+}
+
+.no-files-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 12px 16px;
+  border-radius: 6px;
+  min-width: 300px;
+  font-weight: 500;
+}
+
+.message-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.message-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* Modal styles for notes popup */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.modal-header {
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.modal-body {
+  margin-bottom: 24px;
+}
+
+.modal-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  margin-top: 8px;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Class Selection Modal Styles */
+.class-modal-content {
+  max-width: 90vw;
+  max-height: 80vh;
+  width: 400px;
+}
+
+.modal-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  color: #6b7280;
+  font-weight: normal;
+}
+
+.class-search-container {
+  margin-bottom: 16px;
+}
+
+.class-search-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  background: #f9fafb;
+  transition: all 0.2s;
+}
+
+.class-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.class-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+}
+
+.class-group {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.class-group:last-child {
+  border-bottom: none;
+}
+
+.class-parent {
+  background: #f8fafc;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.class-parent:hover {
+  background: #f1f5f9;
+}
+
+.class-parent.selected {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.class-children {
+  background: white;
+}
+
+.class-child {
+  padding: 10px 16px 10px 32px;
+  border-bottom: 1px solid #f9fafb;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.class-child:hover {
+  background: #f8fafc;
+}
+
+.class-child.selected {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.class-child:last-child {
+  border-bottom: none;
+}
+
+.class-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.class-parent .class-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.class-child .class-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.class-color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.class-selected-indicator {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Mobile optimizations */
+@media (max-width: 480px) {
+  .class-modal-content {
+    max-width: 95vw;
+    width: 100%;
+  }
+  
+  .class-search-input {
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .class-list-container {
+    max-height: 250px;
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.modal-btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.modal-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.modal-btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.modal-btn-primary:hover {
+  background: #2563eb;
+}
+
+.modal-btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.modal-btn-danger:hover {
+  background: #dc2626;
+}
+
+/* Mobile modal adjustments */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 15px;
+  }
+  
+  .modal-content {
+    padding: 20px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .modal-btn {
+    width: 100%;
+  }
+}
+
+/* Add bottom padding to prevent content from being hidden behind fixed buttons */
+.approval-panel .panel-content {
+  padding-bottom: 100px;
+}
+
+@media (max-width: 768px) {
+  .approval-panel .panel-content {
+    padding-bottom: 0;
+  }
+}
+
+/* Mobile web app interface */
+.mobile-app-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* App Header */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 0 20px;
+}
+
+.app-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.app-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  margin: 0;
+  margin-top: 2px;
+}
+
+/* Progress Indicator */
+.progress-container {
+  position: fixed;
+  top: 60px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  z-index: 999;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  transition: width 0.3s ease;
+  width: 0%;
+}
+
+/* Card Container */
+.card-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px 120px;
+  position: relative;
+}
+
+.swipe-card {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  height: 100%;
+  max-height: 600px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.1s ease-out;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.swipe-card.dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+.swipe-card.swipe-right {
+  transform: translate(200%, -50%) rotate(30deg);
+  opacity: 0;
+}
+
+.swipe-card.swipe-left {
+  transform: translate(-200%, -50%) rotate(-30deg);
+  opacity: 0;
+}
+
+.swipe-card.swipe-up {
+  transform: translate(-50%, -200%) rotate(0deg);
+  opacity: 0;
+}
+
+.card-header {
+  padding: 24px 20px 16px;
+  text-align: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.card-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card-preview {
+  width: 100%;
+  height: 240px;
+  background: #f8fafc;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+}
+
+.card-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-preview iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 12px;
+}
+
+.card-info {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.card-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  font-size: 14px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+}
+
+.card-info-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.card-info-label {
+  font-weight: 600;
+  color: #475569;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-info-value {
+  color: #1e293b;
+  text-align: right;
+  font-weight: 500;
+  max-width: 60%;
+  word-break: break-word;
+}
+
+.swipe-indicators {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.swipe-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 64px;
+  font-weight: 900;
+  opacity: 0;
+  transition: all 0.3s ease;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+}
+
+.swipe-indicator.approve {
+  right: 20px;
+  background: rgba(16, 185, 129, 0.9);
+  color: white;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.swipe-indicator.reject {
+  left: 20px;
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.swipe-indicator.skip {
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(107, 114, 128, 0.9);
+  color: white;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.swipe-indicator.show {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Mobile Instructions */
+.mobile-instructions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px);
+  padding: 20px;
+  text-align: center;
+  z-index: 1000;
+}
+
+.instruction-text {
+  color: white;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+  font-weight: 500;
+}
+
+.instruction-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.instruction-btn {
+  padding: 12px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  backdrop-filter: blur(10px);
+}
+
+.instruction-btn.approve {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.2);
+}
+
+.instruction-btn.reject {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.instruction-btn.skip {
+  border-color: rgba(107, 114, 128, 0.5);
+  background: rgba(107, 114, 128, 0.2);
+}
+
+/* No Files State */
+.no-files-mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: white;
+  text-align: center;
+  padding: 40px;
+}
+
+.no-files-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  opacity: 0.7;
+}
+
+.no-files-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+}
+
+.no-files-subtitle {
+  font-size: 16px;
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* File preview styles */
+.preview-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.preview-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.preview-content {
+  color: #6b7280;
+  text-align: center;
+}
+
+.pdf-preview {
+  margin-bottom: 20px;
+}
+
+/* Mobile preview adjustments */
+@media (max-width: 768px) {
+  .preview-area {
+    min-height: 150px;
+  }
+  
+  .preview-icon {
+    font-size: 36px;
+  }
+  
+  #pdf-iframe {
+    height: 300px !important;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Desktop Layout -->
+<div class="approvals-container">
+  <div class="desktop-layout">
+    <!-- File List Panel -->
+    <div class="file-list-panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Files to Approve</h2>
+        <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 14px;">
+          {% if not is_admin and user_projects %}
+            Assigned to: {{ user_projects|join:", " }}
+          {% elif not is_admin and not user_projects %}
+            <span style="color: #f59e0b;">⚠️ No projects assigned</span>
+          {% else %}
+            All files available
+          {% endif %}
+        </p>
+      </div>
+      <div class="panel-content">
+        <div id="desktop-file-list">
+          <!-- Files will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Approval Panel -->
+    <div class="approval-panel">
+      <div class="panel-header">
+        <h2 class="panel-title" id="desktop-panel-title">Select a File</h2>
+        <p style="margin: 8px 0 0 0; color: #6b7280; font-size: 14px;" id="desktop-panel-subtitle">
+          Choose a file from the list to review and approve
+        </p>
+      </div>
+      <div class="panel-content">
+        <div id="desktop-approval-content">
+          <div style="text-align: center; color: #9ca3af; padding: 60px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+            <h3 style="margin: 0 0 8px 0; color: #6b7280;">No File Selected</h3>
+            <p style="margin: 0; font-size: 14px;">Select a file from the list to begin reviewing</p>
+          </div>
+        </div>
+      </div>
+      <div class="approval-actions" id="desktop-approval-actions" style="display: none;">
+        <button class="approval-btn btn-hold" onclick="showHoldRejectOptions()">
+          ⏸️ Hold/Reject
+        </button>
+        <button class="approval-btn btn-skip" onclick="skipCurrentFile()">
+          ⏭️ Skip
+        </button>
+        <button class="approval-btn btn-approve" onclick="approveCurrentFile()">
+          ✅ Approve
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Layout -->
+<div class="mobile-app-container">
+  <!-- App Header -->
+  <div class="app-header">
+    <div>
+      <h1 class="app-title">File Approvals</h1>
+      <p class="app-subtitle" id="app-subtitle">Swipe to approve or reject</p>
+      {% if not is_admin and user_projects %}
+      <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">
+        Assigned to: {{ user_projects|join:", " }}
+      </div>
+      {% elif not is_admin and not user_projects %}
+      <div style="font-size: 12px; opacity: 0.8; margin-top: 4px; color: #fbbf24;">
+        ⚠️ No projects assigned
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  
+  <!-- Progress Bar -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+  
+  <!-- Card Container -->
+  <div class="card-container">
+    <!-- Swipe Card -->
+    <div id="swipe-card" class="swipe-card">
+      <div class="card-header">
+        <h3 class="card-title" id="card-title">Loading...</h3>
+      </div>
+      <div class="card-content">
+        <div class="card-preview" id="card-preview">
+          <div style="color: #9ca3af; display: flex; align-items: center; justify-content: center; height: 100%;">
+            📄 Preview loading...
+          </div>
+        </div>
+        <div class="card-info" id="card-info">
+          <!-- File info will be populated here -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Swipe Indicators -->
+    <div class="swipe-indicators">
+      <div class="swipe-indicator approve">✅</div>
+      <div class="swipe-indicator reject">❌</div>
+      <div class="swipe-indicator skip">⏭️</div>
+    </div>
+  </div>
+  
+  <!-- Mobile Instructions -->
+  <div class="mobile-instructions">
+    <p class="instruction-text">Swipe the card or use buttons below</p>
+    <div class="instruction-buttons">
+      <button class="instruction-btn reject" onclick="showHoldRejectOptions()">Hold/Reject</button>
+      <button class="instruction-btn skip" onclick="skipCurrentFile()">Skip</button>
+      <button class="instruction-btn approve" onclick="approveCurrentFile()">Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Notes Modal -->
+<div class="modal-overlay" id="notes-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title" id="modal-title">Add Comment</h3>
+    </div>
+    <div class="modal-body">
+      <label for="modal-comment" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+        Comment (required):
+      </label>
+      <textarea 
+        id="modal-comment" 
+        class="modal-textarea" 
+        placeholder="Enter your comment here..."
+      ></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" onclick="closeNotesModal()">
+        Cancel
+      </button>
+      <button class="modal-btn modal-btn-danger" id="modal-confirm-btn" onclick="confirmApproval()">
+        Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Class Selection Modal -->
+<div class="modal-overlay" id="class-modal" style="display: none;">
+  <div class="modal-content class-modal-content">
+    <div class="modal-header">
+      <h3 class="modal-title">Select Class</h3>
+      <p class="modal-subtitle">Choose the appropriate class for this invoice</p>
+    </div>
+    <div class="modal-body">
+      <div class="class-search-container">
+        <input type="text" id="class-search" placeholder="Search classes..." class="class-search-input">
+      </div>
+      <div class="class-list-container" id="class-list">
+        <!-- Classes will be populated by JavaScript -->
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" onclick="closeClassModal()">
+        Cancel
+      </button>
+      <button class="modal-btn modal-btn-primary" id="confirm-class-btn" onclick="confirmClassSelection()" disabled>
+        Approve with Selected Class
+      </button>
+    </div>
+  </div>
+</div>
+
+{% csrf_token %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Mobile-first approvals app
+let files = [];
+let classes = [];
+let selectedFileId = null;
+let pendingApprovalStatus = null;
+let currentFileIndex = 0;
+let totalFiles = 0;
+let selectedClassId = null;
+
+// Parse files data from JSON
+try {
+  const filesJsonString = '{{ files_json|escapejs }}';
+  console.log('Raw files JSON string:', filesJsonString);
+  files = JSON.parse(filesJsonString);
+  totalFiles = files.length;
+  console.log('Parsed files data:', files);
+  console.log('Total files:', totalFiles);
+} catch (error) {
+  console.error('Error parsing files JSON:', error);
+  console.log('Raw JSON string was:', '{{ files_json|escapejs }}');
+}
+
+// Parse classes data from JSON
+try {
+  const classesJsonString = '{{ classes_json|escapejs }}';
+  console.log('Raw classes JSON string:', classesJsonString);
+  classes = JSON.parse(classesJsonString);
+  console.log('Parsed classes data:', classes);
+} catch (error) {
+  console.error('Error parsing classes JSON:', error);
+  classes = [];
+}
+
+console.log('✅ Mobile Approvals App loaded!');
+
+// Initialize the app based on screen size
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, initializing app...');
+  
+  // Check if we're on desktop or mobile
+  if (window.innerWidth >= 1024) {
+    console.log('Desktop detected, initializing desktop interface...');
+    initializeDesktopApp();
+  } else {
+    console.log('Mobile detected, initializing mobile interface...');
+    initializeMobileApp();
+    setupSwipeHandlers();
+    loadCurrentFile();
+  }
+  
+  // Handle window resize
+  window.addEventListener('resize', function() {
+    if (window.innerWidth >= 1024) {
+      // Switch to desktop if not already
+      if (!document.querySelector('.desktop-layout').style.display !== 'none') {
+        console.log('Switching to desktop interface...');
+        initializeDesktopApp();
+      }
+    } else {
+      // Switch to mobile if not already
+      if (document.querySelector('.mobile-app-container').style.display !== 'none') {
+        console.log('Switching to mobile interface...');
+        initializeMobileApp();
+        setupSwipeHandlers();
+        loadCurrentFile();
+      }
+    }
+  });
+});
+
+function initializeDesktopApp() {
+  console.log('Initializing desktop app...');
+  populateDesktopFileList();
+  updateDesktopProgress();
+}
+
+function initializeMobileApp() {
+  console.log('Initializing mobile app...');
+  updateProgress();
+  updateAppSubtitle();
+}
+
+function updateProgress() {
+  const progressBar = document.getElementById('progress-bar');
+  if (progressBar && totalFiles > 0) {
+    const progress = ((currentFileIndex + 1) / totalFiles) * 100;
+    progressBar.style.width = `${progress}%`;
+  }
+}
+
+function updateAppSubtitle() {
+  const subtitle = document.getElementById('app-subtitle');
+  if (subtitle && totalFiles > 0) {
+    subtitle.textContent = `${currentFileIndex + 1} of ${totalFiles} files`;
+  }
+}
+
+// Desktop-specific functions
+function populateDesktopFileList() {
+  const fileList = document.getElementById('desktop-file-list');
+  if (!fileList) return;
+  
+  fileList.innerHTML = '';
+  
+  if (files.length === 0) {
+    fileList.innerHTML = `
+      <div style="text-align: center; color: #9ca3af; padding: 40px 20px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">📁</div>
+        <div>No files available for approval</div>
+      </div>
+    `;
+    return;
+  }
+  
+  files.forEach((file, index) => {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+    fileItem.dataset.fileId = file.id;
+    fileItem.dataset.fileIndex = index;
+    
+    const statusClass = file.approval_status || 'pending';
+    const statusText = statusClass.charAt(0).toUpperCase() + statusClass.slice(1).replace('_', ' ');
+    
+    fileItem.innerHTML = `
+      <div class="file-name">${file.name}</div>
+      <div class="file-details">
+        ${file.project || 'No Project'} • ${file.vendor || 'No Vendor'} • ${file.date || 'No Date'}
+      </div>
+      <div class="approval-status status-${statusClass}">${statusText}</div>
+    `;
+    
+    fileItem.addEventListener('click', function() {
+      selectDesktopFile(file.id, index);
+    });
+    
+    fileList.appendChild(fileItem);
+  });
+}
+
+function selectDesktopFile(fileId, fileIndex) {
+  // Remove previous selection
+  document.querySelectorAll('#desktop-file-list .file-item').forEach(item => {
+    item.classList.remove('selected');
+  });
+  
+  // Add selection to clicked item
+  document.querySelector(`#desktop-file-list [data-file-id="${fileId}"]`).classList.add('selected');
+  
+  selectedFileId = fileId;
+  currentFileIndex = fileIndex;
+  
+  const file = files[fileIndex];
+  if (!file) return;
+  
+  // Update panel title and subtitle
+  document.getElementById('desktop-panel-title').textContent = file.name;
+  document.getElementById('desktop-panel-subtitle').textContent = 
+    `${file.project || 'No Project'} • ${file.vendor || 'No Vendor'} • ${file.date || 'No Date'}`;
+  
+  // Update approval content
+  updateDesktopApprovalContent(file);
+  
+  // Show approval actions
+  document.getElementById('desktop-approval-actions').style.display = 'flex';
+}
+
+function updateDesktopApprovalContent(file) {
+  const content = document.getElementById('desktop-approval-content');
+  if (!content) return;
+  
+  const statusClass = file.approval_status || 'pending';
+  const statusText = statusClass.charAt(0).toUpperCase() + statusClass.slice(1).replace('_', ' ');
+  
+  content.innerHTML = `
+    <div class="bill-info">
+      <h4>File Information</h4>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Project:</span>
+        <span class="bill-info-value">${file.project || 'Not specified'}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Vendor:</span>
+        <span class="bill-info-value">${file.vendor || 'Not specified'}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Date:</span>
+        <span class="bill-info-value">${file.date || 'Not specified'}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Invoice #:</span>
+        <span class="bill-info-value">${file.invoice_number || 'Not specified'}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Total:</span>
+        <span class="bill-info-value">${file.total || 'Not specified'}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Status:</span>
+        <span class="bill-info-value">
+          <span class="approval-status status-${statusClass}">${statusText}</span>
+        </span>
+      </div>
+      ${file.approval_comment ? `
+        <div class="bill-info-item">
+          <span class="bill-info-label">Comment:</span>
+          <span class="bill-info-value">${file.approval_comment}</span>
+        </div>
+      ` : ''}
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+      <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+        <div style="color: #6b7280; margin-bottom: 8px;">File Preview</div>
+        <div style="color: #9ca3af;">
+          ${file.file_type === '.pdf' ? '📄 PDF Document' : 
+            file.file_type === '.jpg' || file.file_type === '.jpeg' || file.file_type === '.png' ? '🖼️ Image File' :
+            '📁 Document'}
+        </div>
+        <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
+          ${file.file_size_display} • Uploaded ${file.uploaded_at}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updateDesktopProgress() {
+  // Update file count in desktop header
+  const fileCount = files.length;
+  const processedCount = files.filter(f => f.approval_status && f.approval_status !== 'pending').length;
+  
+  // You could add a progress indicator to the desktop header if needed
+  console.log(`Desktop: ${processedCount}/${fileCount} files processed`);
+}
+
+function approveCurrentFile() {
+  if (selectedFileId) {
+    // Show class selection modal first
+    showClassSelectionModal();
+  }
+}
+
+function skipCurrentFile() {
+  if (selectedFileId) {
+    // Just move to the next file without any action
+    showMessage('File skipped', 'info');
+    nextFile();
+  }
+}
+
+function loadCurrentFile() {
+  console.log('Loading current file, index:', currentFileIndex, 'files.length:', files.length);
+  
+  if (files.length === 0) {
+    console.log('No files available');
+    showNoFilesMessage();
+    return;
+  }
+  
+  const file = files[currentFileIndex];
+  console.log('Current file:', file);
+  
+  if (!file) {
+    console.log('File not found at index:', currentFileIndex);
+    showNoFilesMessage();
+    return;
+  }
+  
+  loadMobileCard(file);
+  updateProgress();
+  updateAppSubtitle();
+}
+
+function loadMobileCard(file) {
+  // Update card title
+  document.getElementById('card-title').textContent = file.name;
+  
+  // Update card preview
+  const preview = document.getElementById('card-preview');
+  const fileType = file.file_type || '';
+  const fileName = file.name.toLowerCase();
+  
+  if (fileType === '.pdf' || fileName.endsWith('.pdf')) {
+    preview.innerHTML = `<iframe src="/files/preview/${file.id}/" width="100%" height="100%" style="border: none; border-radius: 12px;"></iframe>`;
+  } else if (fileType === '.jpg' || fileType === '.jpeg' || fileType === '.png' || fileType === '.gif' || fileType === '.webp' ||
+             fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif') || fileName.endsWith('.webp')) {
+    preview.innerHTML = `<img src="/files/preview/${file.id}/" alt="${file.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px;">`;
+  } else {
+    preview.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #9ca3af;">📄 Preview not available</div>';
+  }
+  
+  // Update card info
+  const info = document.getElementById('card-info');
+  info.innerHTML = `
+    <div class="card-info-item">
+      <span class="card-info-label">Project:</span>
+      <span class="card-info-value">${file.project || 'N/A'}</span>
+    </div>
+    <div class="card-info-item">
+      <span class="card-info-label">Vendor:</span>
+      <span class="card-info-value">${file.vendor || 'N/A'}</span>
+    </div>
+    <div class="card-info-item">
+      <span class="card-info-label">Date:</span>
+      <span class="card-info-value">${file.date || 'N/A'}</span>
+    </div>
+    <div class="card-info-item">
+      <span class="card-info-label">Invoice:</span>
+      <span class="card-info-value">${file.invoice_number || 'N/A'}</span>
+    </div>
+    <div class="card-info-item">
+      <span class="card-info-label">Amount:</span>
+      <span class="card-info-value">${file.total || '$0.00'}</span>
+    </div>
+    ${file.attached_transaction ? `
+      <div class="card-info-item">
+        <span class="card-info-label">Cardholder:</span>
+        <span class="card-info-value">${file.attached_transaction.card_holder}</span>
+      </div>
+      <div class="card-info-item">
+        <span class="card-info-label">Description:</span>
+        <span class="card-info-value">${file.attached_transaction.description}</span>
+      </div>
+    ` : ''}
+  `;
+  
+  selectedFileId = file.id;
+}
+
+function showNoFilesMessage() {
+  const cardContainer = document.querySelector('.card-container');
+  if (cardContainer) {
+    // Check if user is admin or has assigned projects
+    const isAdmin = {{ user.is_staff|yesno:"true,false" }};
+    const hasFiles = files && files.length > 0;
+    
+    let title, subtitle, icon;
+    
+    if (isAdmin && !hasFiles) {
+      title = "No Files Found";
+      subtitle = "No files are available for approval at this time";
+      icon = "📁";
+    } else if (!isAdmin && !hasFiles) {
+      title = "No Assigned Projects";
+      subtitle = "You don't have any projects assigned to you. Contact your administrator to get assigned to projects.";
+      icon = "👥";
+    } else {
+      title = "All Done!";
+      subtitle = "No more files to approve";
+      icon = "🎉";
+    }
+    
+    cardContainer.innerHTML = `
+      <div class="no-files-mobile">
+        <div class="no-files-icon">${icon}</div>
+        <h2 class="no-files-title">${title}</h2>
+        <p class="no-files-subtitle">${subtitle}</p>
+      </div>
+    `;
+  }
+  
+  // Update app subtitle
+  const subtitle = document.getElementById('app-subtitle');
+  if (subtitle) {
+    subtitle.textContent = 'All files processed';
+  }
+  
+  // Hide progress bar
+  const progressBar = document.getElementById('progress-bar');
+  if (progressBar) {
+    progressBar.style.width = '100%';
+  }
+}
+
+// Swipe functionality
+function setupSwipeHandlers() {
+  
+  const card = document.getElementById('swipe-card');
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  let isDragging = false;
+  
+  // Touch events
+  card.addEventListener('touchstart', handleStart, { passive: false });
+  card.addEventListener('touchmove', handleMove, { passive: false });
+  card.addEventListener('touchend', handleEnd, { passive: false });
+  
+  // Mouse events for desktop testing
+  card.addEventListener('mousedown', handleStart);
+  card.addEventListener('mousemove', handleMove);
+  card.addEventListener('mouseup', handleEnd);
+  card.addEventListener('mouseleave', handleEnd);
+  
+  function handleStart(e) {
+    isDragging = true;
+    card.classList.add('dragging');
+    
+    if (e.type === 'touchstart') {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    } else {
+      startX = e.clientX;
+      startY = e.clientY;
+      e.preventDefault();
+    }
+  }
+  
+  function handleMove(e) {
+    if (!isDragging) return;
+    
+    if (e.type === 'touchmove') {
+      currentX = e.touches[0].clientX;
+      currentY = e.touches[0].clientY;
+      e.preventDefault();
+    } else {
+      currentX = e.clientX;
+      currentY = e.clientY;
+      e.preventDefault();
+    }
+    
+    const deltaX = currentX - startX;
+    const deltaY = currentY - startY;
+    const rotation = deltaX * 0.1;
+    
+    // Update card position
+    card.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px)) rotate(${rotation}deg)`;
+    
+    // Show swipe indicators
+    const approveIndicator = document.querySelector('.swipe-indicator.approve');
+    const rejectIndicator = document.querySelector('.swipe-indicator.reject');
+    const skipIndicator = document.querySelector('.swipe-indicator.skip');
+    
+    if (deltaX > 50) {
+      approveIndicator.classList.add('show');
+      rejectIndicator.classList.remove('show');
+      skipIndicator.classList.remove('show');
+    } else if (deltaX < -50) {
+      rejectIndicator.classList.add('show');
+      approveIndicator.classList.remove('show');
+      skipIndicator.classList.remove('show');
+    } else if (deltaY < -50) {
+      skipIndicator.classList.add('show');
+      approveIndicator.classList.remove('show');
+      rejectIndicator.classList.remove('show');
+    } else {
+      approveIndicator.classList.remove('show');
+      rejectIndicator.classList.remove('show');
+      skipIndicator.classList.remove('show');
+    }
+  }
+  
+  function handleEnd(e) {
+    if (!isDragging) return;
+    
+    isDragging = false;
+    card.classList.remove('dragging');
+    
+    const deltaX = currentX - startX;
+    const threshold = 100;
+    
+    // Hide indicators
+    document.querySelector('.swipe-indicator.approve').classList.remove('show');
+    document.querySelector('.swipe-indicator.reject').classList.remove('show');
+    document.querySelector('.swipe-indicator.skip').classList.remove('show');
+    
+    if (Math.abs(deltaX) > threshold) {
+      if (deltaX > 0) {
+        // Swipe right - Show class selection for approval
+        swipeCard('right', 'approved');
+      } else {
+        // Swipe left - Show Hold/Reject options with class selection
+        swipeCard('left', 'hold_reject');
+      }
+    } else if (deltaY < -50) {
+      // Swipe up - Skip file
+      swipeCard('up', 'skip');
+    } else {
+      // Return to center
+      card.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+    }
+  }
+}
+
+function swipeCard(direction, action) {
+  const card = document.getElementById('swipe-card');
+  
+  if (direction === 'right') {
+    card.classList.add('swipe-right');
+    setTimeout(() => {
+      // For approval, show class selection modal
+      showClassSelectionModal();
+    }, 300);
+  } else if (direction === 'left') {
+    card.classList.add('swipe-left');
+    setTimeout(() => {
+      // For hold/reject, show hold/reject options with class selection
+      showHoldRejectOptions();
+    }, 300);
+  } else if (direction === 'up') {
+    card.classList.add('swipe-up');
+    setTimeout(() => {
+      // For skip, just skip the file
+      skipCurrentFile();
+    }, 300);
+  }
+}
+
+function showHoldRejectOptions() {
+  // Create modal for Hold/Reject selection with comment only
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Choose Action</h3>
+        <p class="modal-subtitle">Select an action and provide a comment explaining why</p>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 20px; color: #6b7280;">What would you like to do with this file?</p>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+          <button class="modal-btn modal-btn-primary" onclick="selectHoldReject('on_hold')" style="flex: 1;">
+            ⏸️ Put on Hold
+          </button>
+          <button class="modal-btn modal-btn-danger" onclick="selectHoldReject('rejected')" style="flex: 1;">
+            ❌ Reject
+          </button>
+        </div>
+        
+        <!-- Comment Section -->
+        <div>
+          <label for="hold-reject-comment" style="display: block; margin-bottom: 8px; font-weight: 500; color: #374151;">
+            Comment (required):
+          </label>
+          <textarea 
+            id="hold-reject-comment" 
+            class="modal-textarea" 
+            placeholder="Enter your comment here..."
+          ></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-secondary" onclick="closeHoldRejectModal()">
+          Cancel
+        </button>
+        <button class="modal-btn modal-btn-primary" id="confirm-hold-reject-btn" onclick="confirmHoldReject()" disabled>
+          Confirm
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Store reference for cleanup
+  window.holdRejectModal = modal;
+  
+  // Add comment field listener for form validation
+  const commentField = document.getElementById('hold-reject-comment');
+  commentField.addEventListener('input', checkHoldRejectFormValidity);
+}
+
+function selectHoldReject(action) {
+  pendingApprovalStatus = action;
+  const confirmBtn = document.getElementById('confirm-hold-reject-btn');
+  
+  if (action === 'on_hold') {
+    confirmBtn.textContent = 'Put on Hold';
+    confirmBtn.className = 'modal-btn modal-btn-primary';
+  } else {
+    confirmBtn.textContent = 'Reject';
+    confirmBtn.className = 'modal-btn modal-btn-danger';
+  }
+  
+  // Check if action and comment are provided to enable confirm button
+  checkHoldRejectFormValidity();
+}
+
+
+function checkHoldRejectFormValidity() {
+  const comment = document.getElementById('hold-reject-comment').value.trim();
+  const hasAction = pendingApprovalStatus !== null;
+  
+  const confirmBtn = document.getElementById('confirm-hold-reject-btn');
+  
+  if (hasAction && comment) {
+    confirmBtn.disabled = false;
+  } else {
+    confirmBtn.disabled = true;
+  }
+}
+
+function confirmHoldReject() {
+  const comment = document.getElementById('hold-reject-comment').value.trim();
+  
+  if (!comment) {
+    showMessage('Comment is required for Hold/Reject actions', 'error');
+    return;
+  }
+  
+  closeHoldRejectModal();
+  updateApproval(pendingApprovalStatus, comment);
+  nextFile();
+}
+
+function closeHoldRejectModal() {
+  if (window.holdRejectModal) {
+    window.holdRejectModal.remove();
+    window.holdRejectModal = null;
+  }
+  pendingApprovalStatus = null;
+}
+
+function nextFile() {
+  currentFileIndex++;
+  
+  if (window.innerWidth >= 1024) {
+    // Desktop interface - just update the file list
+    populateDesktopFileList();
+    // Clear selection
+    selectedFileId = null;
+    document.getElementById('desktop-approval-actions').style.display = 'none';
+    document.getElementById('desktop-panel-title').textContent = 'Select a File';
+    document.getElementById('desktop-panel-subtitle').textContent = 'Choose a file from the list to review and approve';
+    document.getElementById('desktop-approval-content').innerHTML = `
+      <div style="text-align: center; color: #9ca3af; padding: 60px 20px;">
+        <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+        <h3 style="margin: 0 0 8px 0; color: #6b7280;">No File Selected</h3>
+        <p style="margin: 0; font-size: 14px;">Select a file from the list to begin reviewing</p>
+      </div>
+    `;
+  } else {
+    // Mobile interface
+    // Reset card position
+    const card = document.getElementById('swipe-card');
+    if (card) {
+      card.style.transform = 'translate(0, 0) rotate(0deg)';
+      card.classList.remove('swipe-right', 'swipe-left', 'swipe-up');
+    }
+    
+    if (currentFileIndex >= files.length) {
+      // No more files
+      showNoFilesMessage();
+    } else {
+      loadCurrentFile();
+    }
+  }
+}
+
+function selectFile(fileId) {
+  console.log('selectFile called with fileId:', fileId);
+  selectedFileId = fileId;
+  
+  // Update file list selection - check if elements exist first
+  const fileItems = document.querySelectorAll('.file-item');
+  if (fileItems.length > 0) {
+    fileItems.forEach(item => {
+      item.classList.remove('selected');
+    });
+    const selectedItem = document.querySelector(`[data-file-id="${fileId}"]`);
+    if (selectedItem) {
+      selectedItem.classList.add('selected');
+    }
+  }
+  
+  // Get file data - try both string and integer comparison
+  const file = files.find(f => f.id === fileId || f.id === parseInt(fileId));
+  console.log('Found file:', file);
+  if (!file) {
+    console.log('No file found with id:', fileId);
+    return;
+  }
+  
+  // Update preview title - check if element exists
+  const previewTitle = document.getElementById('preview-title');
+  if (previewTitle) {
+    previewTitle.textContent = file.name;
+  }
+  
+  // Show file preview based on file type - check if elements exist
+  const fileType = file.file_type || '';
+  const fileName = file.name.toLowerCase();
+  
+  const previewArea = document.getElementById('preview-area');
+  const pdfPreview = document.getElementById('pdf-preview');
+  const pdfIframe = document.getElementById('pdf-iframe');
+  const previewIcon = document.querySelector('.preview-icon');
+  const previewContent = document.querySelector('.preview-content');
+  
+  if (fileType === '.pdf' || fileName.endsWith('.pdf')) {
+    // Show PDF preview
+    if (previewArea) previewArea.style.display = 'none';
+    if (pdfPreview) pdfPreview.style.display = 'block';
+    if (pdfIframe) {
+      const pdfUrl = `/files/preview/${file.id}/`;
+      pdfIframe.src = pdfUrl;
+    }
+  } else if (fileType === '.jpg' || fileType === '.jpeg' || fileType === '.png' || fileType === '.gif' || fileType === '.webp' ||
+             fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif') || fileName.endsWith('.webp')) {
+    // Show image preview
+    if (previewArea) previewArea.style.display = 'flex';
+    if (pdfPreview) pdfPreview.style.display = 'none';
+    if (previewIcon) previewIcon.textContent = '';
+    if (previewContent) {
+      previewContent.innerHTML = `<img src="/files/preview/${file.id}/" alt="${file.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;">`;
+    }
+  } else {
+    // Show generic preview
+    if (previewArea) previewArea.style.display = 'flex';
+    if (pdfPreview) pdfPreview.style.display = 'none';
+    if (previewIcon) previewIcon.textContent = '📄';
+    if (previewContent) previewContent.textContent = 'Preview not available for this file type';
+  }
+  
+  // Show approval content - check if element exists
+  const content = document.getElementById('approval-content');
+  if (content) {
+    content.innerHTML = `
+    <div class="bill-info">
+      <h4>File Information</h4>
+      <div class="bill-info-item">
+        <span class="bill-info-label">File:</span>
+        <span class="bill-info-value">${file.name}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Project:</span>
+        <span class="bill-info-value">${file.project}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Vendor:</span>
+        <span class="bill-info-value">${file.vendor}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Date:</span>
+        <span class="bill-info-value">${file.date || 'N/A'}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Invoice:</span>
+        <span class="bill-info-value">${file.invoice_number}</span>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Amount:</span>
+        <span class="bill-info-value">${file.total}</span>
+      </div>
+      ${file.attached_transaction ? `
+        <div class="bill-info-item">
+          <span class="bill-info-label">Cardholder:</span>
+          <span class="bill-info-value">${file.attached_transaction.card_holder}</span>
+        </div>
+        <div class="bill-info-item">
+          <span class="bill-info-label">Description:</span>
+          <span class="bill-info-value">${file.attached_transaction.description}</span>
+        </div>
+      ` : ''}
+    </div>
+    
+    
+    ${file.approved_by ? `
+      <div class="approval-history">
+        <h5>Approval History</h5>
+        <div class="history-item">
+          <strong>Status:</strong> ${file.approval_status.charAt(0).toUpperCase() + file.approval_status.slice(1).replace('_', ' ')}
+        </div>
+        <div class="history-item">
+          <strong>Approved by:</strong> ${file.approved_by}
+        </div>
+        <div class="history-item">
+          <strong>Approved at:</strong> ${file.approved_at}
+        </div>
+        ${file.approval_comment ? `
+          <div class="history-item">
+            <strong>Comment:</strong> ${file.approval_comment}
+          </div>
+        ` : ''}
+      </div>
+    ` : ''}
+  `;
+    
+    content.classList.add('active');
+  }
+  
+  // Show approval actions - check if element exists
+  const approvalActions = document.getElementById('approval-actions');
+  if (approvalActions) {
+    approvalActions.style.display = 'flex';
+  }
+}
+
+// Mobile-only app - no resize handling needed
+
+function updateApproval(status, comment = '', classId = null) {
+  if (!selectedFileId) {
+    showMessage('Please select a file first', 'error');
+    return;
+  }
+  
+  const requestData = {
+    file_id: selectedFileId,
+    approval_status: status,
+    approval_comment: comment
+  };
+  
+  // Add class ID if provided (for approvals)
+  if (classId) {
+    requestData.selected_class_id = classId;
+  }
+  
+  fetch('{% url "update_file_approval" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(requestData)
+  })
+  .then(response => {
+    console.log('Response received:', response);
+    return response.json();
+  })
+  .then(data => {
+    console.log('Response data:', data);
+    if (data.success) {
+      showMessage(data.message, 'success');
+      
+      // Update file object in memory
+      const file = files.find(f => f.id === selectedFileId);
+      if (file) {
+        file.approval_status = status;
+        file.approval_comment = comment;
+        file.approved_by = '{{ user.get_full_name|default:user.username }}';
+        file.approved_at = new Date().toLocaleString();
+      }
+      
+      // Update UI - check if elements exist before updating
+      const statusElement = document.querySelector(`[data-file-id="${selectedFileId}"] .approval-status`);
+      if (statusElement) {
+        statusElement.className = `approval-status status-${status}`;
+        statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ');
+      }
+      
+      // Refresh the approval content
+      if (window.innerWidth >= 1024) {
+        // Desktop interface
+        const file = files.find(f => f.id === selectedFileId);
+        if (file) {
+          updateDesktopApprovalContent(file);
+        }
+      } else {
+        // Mobile interface
+        selectFile(selectedFileId);
+      }
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error in updateApproval:', error);
+    showMessage('Error updating approval status: ' + error.message, 'error');
+  });
+}
+
+function showNotesModal(status) {
+  pendingApprovalStatus = status;
+  
+  // Update modal title and button based on status
+  const modal = document.getElementById('notes-modal');
+  const title = document.getElementById('modal-title');
+  const confirmBtn = document.getElementById('modal-confirm-btn');
+  const textarea = document.getElementById('modal-comment');
+  
+  if (status === 'on_hold') {
+    title.textContent = 'Put on Hold - Add Comment';
+    confirmBtn.textContent = 'Put on Hold';
+    confirmBtn.className = 'modal-btn modal-btn-primary';
+  } else if (status === 'rejected') {
+    title.textContent = 'Reject - Add Comment';
+    confirmBtn.textContent = 'Reject';
+    confirmBtn.className = 'modal-btn modal-btn-danger';
+  }
+  
+  // Clear textarea
+  textarea.value = '';
+  
+  // Show modal
+  modal.style.display = 'flex';
+  
+  // Focus on textarea
+  setTimeout(() => textarea.focus(), 100);
+}
+
+function closeNotesModal() {
+  document.getElementById('notes-modal').style.display = 'none';
+  pendingApprovalStatus = null;
+}
+
+function confirmApproval() {
+  const comment = document.getElementById('modal-comment').value.trim();
+  
+  if (!comment) {
+    showMessage('Comment is required for Hold/Reject actions', 'error');
+    return;
+  }
+  
+  closeNotesModal();
+  updateApproval(pendingApprovalStatus, comment);
+}
+
+function showMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message message-${type}`;
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    messageDiv.style.opacity = '0';
+    setTimeout(() => messageDiv.remove(), 300);
+  }, 3000);
+}
+
+// Add event listeners for modal
+document.addEventListener('DOMContentLoaded', function() {
+  // Close modal when clicking outside
+  document.getElementById('notes-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      closeNotesModal();
+    }
+  });
+  
+  // Close modal with escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeNotesModal();
+    }
+  });
+  
+  // Handle enter key in textarea (Ctrl+Enter to submit)
+  document.getElementById('modal-comment').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && e.ctrlKey) {
+      confirmApproval();
+    }
+  });
+});
+
+// Class Selection Functions
+function showClassSelectionModal() {
+  selectedClassId = null;
+  populateClassList();
+  document.getElementById('class-modal').style.display = 'flex';
+  document.getElementById('confirm-class-btn').disabled = true;
+}
+
+function closeClassModal() {
+  document.getElementById('class-modal').style.display = 'none';
+  selectedClassId = null;
+}
+
+function populateClassList() {
+  const classList = document.getElementById('class-list');
+  classList.innerHTML = '';
+  
+  // Group classes by parent
+  const parentClasses = classes.filter(c => !c.is_child);
+  const childClasses = classes.filter(c => c.is_child);
+  
+  parentClasses.forEach(parentClass => {
+    // Create parent group
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'class-group';
+    
+    // Add parent class
+    const parentDiv = document.createElement('div');
+    parentDiv.className = 'class-parent';
+    parentDiv.setAttribute('data-class-id', parentClass.id);
+    parentDiv.innerHTML = `
+      <span class="class-color-indicator" style="background-color: ${parentClass.color}"></span>
+      <span class="class-name">${parentClass.name}</span>
+    `;
+    parentDiv.onclick = () => selectClass(parentClass.id, parentDiv);
+    groupDiv.appendChild(parentDiv);
+    
+    // Add child classes
+    const children = childClasses.filter(c => c.parent_id === parentClass.id);
+    if (children.length > 0) {
+      const childrenDiv = document.createElement('div');
+      childrenDiv.className = 'class-children';
+      
+      children.forEach(childClass => {
+        const childDiv = document.createElement('div');
+        childDiv.className = 'class-child';
+        childDiv.setAttribute('data-class-id', childClass.id);
+        childDiv.innerHTML = `
+          <span class="class-name">${childClass.name}</span>
+        `;
+        childDiv.onclick = () => selectClass(childClass.id, childDiv);
+        childrenDiv.appendChild(childDiv);
+      });
+      
+      groupDiv.appendChild(childrenDiv);
+    }
+    
+    classList.appendChild(groupDiv);
+  });
+}
+
+function selectClass(classId, element) {
+  // Remove previous selection
+  document.querySelectorAll('.class-parent.selected, .class-child.selected').forEach(el => {
+    el.classList.remove('selected');
+    el.querySelector('.class-selected-indicator')?.remove();
+  });
+  
+  // Add selection to current element
+  element.classList.add('selected');
+  element.innerHTML += '<span class="class-selected-indicator">✓</span>';
+  
+  selectedClassId = classId;
+  document.getElementById('confirm-class-btn').disabled = false;
+}
+
+function confirmClassSelection() {
+  if (!selectedClassId) {
+    showMessage('Please select a class first', 'error');
+    return;
+  }
+  
+  // Store the class ID before closing modal
+  const classIdToUse = selectedClassId;
+  
+  // Close class modal
+  closeClassModal();
+  
+  // Proceed with approval using stored class ID
+  updateApproval('approved', '', classIdToUse);
+  nextFile();
+}
+
+// Search functionality for classes
+document.addEventListener('DOMContentLoaded', function() {
+  const classSearch = document.getElementById('class-search');
+  if (classSearch) {
+    classSearch.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const classItems = document.querySelectorAll('.class-parent, .class-child');
+      
+      classItems.forEach(item => {
+        const className = item.querySelector('.class-name').textContent.toLowerCase();
+        const matches = className.includes(searchTerm);
+        item.style.display = matches ? 'block' : 'none';
+      });
+    });
+  }
+});
+</script>
+{% endblock %}
+
+

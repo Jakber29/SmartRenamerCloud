@@ -1,102 +1,144 @@
 #!/bin/bash
 
-# Smart Renamer Cloud Deployment Script
-# This script helps set up and deploy the cloud application
+# SmartRenamerCloud Deployment Script for Linode
+# Run this script on your Linode server
 
-set -e
+echo "🚀 Starting SmartRenamerCloud deployment..."
 
-echo "🚀 Smart Renamer Cloud Deployment Script"
-echo "========================================"
+# Update system packages
+echo "📦 Updating system packages..."
+sudo apt update && sudo apt upgrade -y
 
-# Check prerequisites
-echo "📋 Checking prerequisites..."
+# Install required system packages
+echo "🔧 Installing system dependencies..."
+sudo apt install -y python3 python3-pip python3-venv postgresql postgresql-contrib nginx git
 
-if ! command -v node &> /dev/null; then
-    echo "❌ Node.js is not installed. Please install Node.js 18+ first."
-    exit 1
-fi
+# Create project directory
+echo "📁 Setting up project directory..."
+sudo mkdir -p /var/www/smartrenamer
+sudo chown $USER:$USER /var/www/smartrenamer
+cd /var/www/smartrenamer
 
-if ! command -v wrangler &> /dev/null; then
-    echo "📦 Installing Wrangler CLI..."
-    npm install -g wrangler
-fi
+# Clone or copy your project files here
+# git clone https://github.com/yourusername/SmartRenamerCloud.git .
 
-# Check if user is logged in to Cloudflare
-if ! wrangler whoami &> /dev/null; then
-    echo "🔐 Please log in to Cloudflare:"
-    wrangler login
-fi
+# Create virtual environment
+echo "🐍 Creating Python virtual environment..."
+python3 -m venv venv
+source venv/bin/activate
 
-echo "✅ Prerequisites check passed!"
+# Install Python dependencies
+echo "📚 Installing Python dependencies..."
+pip install -r requirements.txt
 
-# Backend setup
-echo ""
-echo "🔧 Setting up backend..."
+# Set up PostgreSQL database
+echo "🗄️ Setting up PostgreSQL database..."
+sudo -u postgres psql << EOF
+CREATE DATABASE smartrenamer;
+CREATE USER smartrenamer_user WITH PASSWORD 'your_secure_password_here';
+GRANT ALL PRIVILEGES ON DATABASE smartrenamer TO smartrenamer_user;
+\q
+EOF
 
-cd backend
+# Create environment file
+echo "⚙️ Creating environment configuration..."
+cat > .env << EOF
+SECRET_KEY=your-super-secret-key-here
+DEBUG=False
+DB_NAME=smartrenamer
+DB_USER=smartrenamer_user
+DB_PASSWORD=your_secure_password_here
+DB_HOST=localhost
+DB_PORT=5432
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+EOF
 
-echo "📦 Installing dependencies..."
-npm install
+# Run Django migrations
+echo "🔄 Running database migrations..."
+python manage.py migrate --settings=config.settings_production
 
-echo "🗄️ Creating D1 database..."
-DB_ID=$(wrangler d1 create smart-renamer-db --json | jq -r '.id')
+# Create superuser (optional)
+echo "👤 Creating superuser..."
+python manage.py createsuperuser --settings=config.settings_production
 
-echo "🪣 Creating R2 bucket..."
-BUCKET_NAME="smart-renamer-storage"
-wrangler r2 bucket create $BUCKET_NAME
+# Collect static files
+echo "📄 Collecting static files..."
+python manage.py collectstatic --noinput --settings=config.settings_production
 
-echo "📝 Updating wrangler.toml with database ID: $DB_ID"
-sed -i.bak "s/your-database-id-here/$DB_ID/g" wrangler.toml
-sed -i.bak "s/your-dev-database-id-here/$DB_ID/g" wrangler.toml
+# Create logs directory
+mkdir -p logs
 
-echo "🚀 Deploying Worker..."
-wrangler deploy
+# Set up Gunicorn service
+echo "🔧 Setting up Gunicorn service..."
+sudo tee /etc/systemd/system/smartrenamer.service > /dev/null << EOF
+[Unit]
+Description=SmartRenamerCloud Gunicorn daemon
+After=network.target
 
-# Get the Worker URL
-WORKER_URL=$(wrangler whoami --json | jq -r '.account.name')".smart-renamer-api.workers.dev"
-echo "✅ Worker deployed at: https://$WORKER_URL"
+[Service]
+User=$USER
+Group=www-data
+WorkingDirectory=/var/www/smartrenamer
+Environment="PATH=/var/www/smartrenamer/venv/bin"
+ExecStart=/var/www/smartrenamer/venv/bin/gunicorn --workers 3 --bind unix:/var/www/smartrenamer/smartrenamer.sock config.wsgi:application
+ExecReload=/bin/kill -s HUP \$MAINPID
+Restart=on-failure
 
-cd ..
+[Install]
+WantedBy=multi-user.target
+EOF
 
-# Database setup
-echo ""
-echo "🗄️ Setting up database..."
+# Set up Nginx configuration
+echo "🌐 Setting up Nginx configuration..."
+sudo tee /etc/nginx/sites-available/smartrenamer > /dev/null << EOF
+server {
+    listen 80;
+    server_name your-domain.com your-linode-ip;
 
-echo "📊 Applying database schema..."
-cd backend
-wrangler d1 execute smart-renamer-db --file=../database/schema.sql
-cd ..
+    location = /favicon.ico { access_log off; log_not_found off; }
+    
+    location /static/ {
+        root /var/www/smartrenamer;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+    
+    location /media/ {
+        root /var/www/smartrenamer;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
 
-# Frontend setup
-echo ""
-echo "🎨 Setting up frontend..."
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/var/www/smartrenamer/smartrenamer.sock;
+    }
+}
+EOF
 
-cd frontend
+# Enable the site
+sudo ln -s /etc/nginx/sites-available/smartrenamer /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
 
-echo "🔗 Updating API URL in app.js..."
-sed -i.bak "s|https://smart-renamer-api.your-subdomain.workers.dev|https://$WORKER_URL|g" app.js
+# Start and enable services
+echo "🚀 Starting services..."
+sudo systemctl daemon-reload
+sudo systemctl start smartrenamer
+sudo systemctl enable smartrenamer
+sudo systemctl restart nginx
 
-echo "🔗 Updating API URL in _redirects..."
-sed -i.bak "s|smart-renamer-api.your-subdomain.workers.dev|$WORKER_URL|g" _redirects
+# Set proper permissions
+sudo chown -R $USER:www-data /var/www/smartrenamer
+sudo chmod -R 755 /var/www/smartrenamer
 
-cd ..
-
-echo ""
-echo "✅ Setup complete!"
-echo ""
-echo "📋 Next steps:"
-echo "1. Push this code to a GitHub repository"
-echo "2. Connect the repository to Cloudflare Pages"
-echo "3. Set the build directory to 'frontend'"
-echo "4. Set the build command to 'echo \"No build needed\"'"
-echo "5. Set the publish directory to 'frontend'"
-echo ""
-echo "🌐 Your application will be available at:"
-echo "   Frontend: https://your-pages-url.pages.dev"
-echo "   API: https://$WORKER_URL"
-echo ""
-echo "🔧 To test locally:"
-echo "   Backend: cd backend && wrangler dev"
-echo "   Frontend: cd frontend && python -m http.server 8000"
-echo ""
-echo "📚 For more information, see README.md" 
+echo "✅ Deployment complete!"
+echo "🌐 Your app should be available at: http://your-linode-ip"
+echo "📝 Don't forget to:"
+echo "   1. Update your domain DNS to point to your Linode IP"
+echo "   2. Set up SSL certificate with Let's Encrypt"
+echo "   3. Configure your firewall (ufw allow 80,443)"
+echo "   4. Update the .env file with your actual credentials"

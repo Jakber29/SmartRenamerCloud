@@ -1,5 +1,0 @@
-# Handle client-side routing
-/*    /index.html   200
-
-# API requests should go to the Worker
-/api/*    https://smart-renamer-api.jake-b00.workers.dev/api/:splat    200 

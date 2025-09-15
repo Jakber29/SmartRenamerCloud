@@ -1,0 +1,51 @@
+<nav>
+    <div class="brand">Book Assist</div>
+    
+    {% if user.is_staff %}
+    <!-- Admin/Staff Navigation -->
+    <a href="{% url 'dashboard' %}" class="{% if request.path == '/' %}active{% endif %}">Dashboard</a>
+    
+    <!-- Workflow Section -->
+    <div class="nav-section">
+        <div class="nav-section-title">Invoice Processing</div>
+        <a href="{% url 'file_manager' %}" class="{% if request.path|slice:':7' == '/files/' %}active{% endif %}">Invoices</a>
+        <a href="{% url 'transactions_list' %}" class="{% if request.path|slice:':13' == '/transactions' %}active{% endif %}">Transactions</a>
+        <a href="{% url 'approvals_list' %}" class="{% if request.path|slice:':11' == '/approvals/' %}active{% endif %}">Approvals</a>
+        <a href="{% url 'bills_list' %}" class="{% if request.path|slice:':7' == '/bills/' %}active{% endif %}">Bills</a>
+    </div>
+    
+    <!-- Data Management Section -->
+    <div class="nav-section">
+        <div class="nav-section-title">Data Management</div>
+        <a href="{% url 'projects_list' %}" class="{% if request.path|slice:':9' == '/projects' %}active{% endif %}">Projects</a>
+        <a href="{% url 'vendors_list' %}" class="{% if request.path|slice:':8' == '/vendors' %}active{% endif %}">Vendors</a>
+        <a href="{% url 'classes_list' %}" class="{% if request.path|slice:':8' == '/classes' %}active{% endif %}">Classes</a>
+        <a href="{% url 'users_list' %}" class="{% if request.path|slice:':7' == '/users/' %}active{% endif %}">Users</a>
+        <a href="/settings/" class="{% if request.path|slice:':9' == '/settings' %}active{% endif %}">Settings</a>
+    </div>
+    {% else %}
+    <!-- Superintendent-only Navigation -->
+    <div class="nav-section">
+        <div class="nav-section-title">Approvals</div>
+        <a href="{% url 'approvals_list' %}" class="{% if request.path|slice:':11' == '/approvals/' %}active{% endif %}">📋 File Approvals</a>
+    </div>
+    {% endif %}
+  
+    <div class="spacer"></div>
+    
+    <!-- Impersonation Notice -->
+    {% if request.session.impersonated_by %}
+    <div style="background: #fef3c7; color: #92400e; padding: 8px; margin-bottom: 8px; border-radius: 4px; font-size: 12px; text-align: center;">
+      🎭 Impersonating: {{ user.username }}
+    </div>
+    <button onclick="stopImpersonation()" style="width: 100%; padding: 8px 12px; border: 0; border-radius: 8px; background: #dc2626; color: #fff; cursor: pointer; margin-bottom: 8px;">
+      🚪 Stop Impersonation
+    </button>
+    {% endif %}
+    
+    <form class="logout" method="post" action="{% url 'logout' %}">
+      {% csrf_token %}
+      <button type="submit">Log out</button>
+    </form>
+  </nav>
+  

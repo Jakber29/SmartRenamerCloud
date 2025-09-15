@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}Settings{% endblock %}
+
+{% block extra_css %}
+<style>
+.settings-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.settings-header {
+  margin-bottom: 32px;
+}
+
+.settings-title {
+  margin: 0 0 8px 0;
+  color: #1f2937;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.settings-subtitle {
+  margin: 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.settings-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.settings-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.card-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.card-description {
+  margin: 0 0 20px 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.settings-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.item-label {
+  color: #374151;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.item-value {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.item-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.system-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
+.system-info h3 {
+  margin: 0 0 16px 0;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #1f2937;
+  font-weight: 500;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 16px;
+  }
+  
+  .settings-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .settings-card {
+    padding: 20px;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .card-icon {
+    margin-right: 0;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+  <div class="settings-header">
+    <h1 class="settings-title">Settings</h1>
+    <p class="settings-subtitle">Manage your application settings and preferences</p>
+  </div>
+
+  <div class="settings-grid">
+    <!-- User Management -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon" style="background: #dbeafe; color: #1e40af;">
+          👥
+        </div>
+        <h2 class="card-title">User Management</h2>
+      </div>
+      <p class="card-description">
+        Manage users, roles, and permissions for your organization.
+      </p>
+      <ul class="settings-list">
+        <li class="settings-item">
+          <span class="item-label">Total Users</span>
+          <span class="item-value">{{ user_count|default:"0" }}</span>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Active Users</span>
+          <span class="item-value">{{ active_users|default:"0" }}</span>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">User Roles</span>
+          <div class="item-actions">
+            <a href="{% url 'users_list' %}" class="btn btn-primary">Manage Users</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Data Management -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon" style="background: #dcfce7; color: #166534;">
+          📊
+        </div>
+        <h2 class="card-title">Data Management</h2>
+      </div>
+      <p class="card-description">
+        Manage your projects, vendors, and classification system.
+      </p>
+      <ul class="settings-list">
+        <li class="settings-item">
+          <span class="item-label">Projects</span>
+          <div class="item-actions">
+            <a href="{% url 'projects_list' %}" class="btn btn-secondary">Manage</a>
+          </div>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Vendors</span>
+          <div class="item-actions">
+            <a href="{% url 'vendors_list' %}" class="btn btn-secondary">Manage</a>
+          </div>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Classes</span>
+          <div class="item-actions">
+            <a href="{% url 'classes_list' %}" class="btn btn-secondary">Manage</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- File Management -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon" style="background: #fef3c7; color: #92400e;">
+          📁
+        </div>
+        <h2 class="card-title">File Management</h2>
+      </div>
+      <p class="card-description">
+        Configure file processing and approval workflows.
+      </p>
+      <ul class="settings-list">
+        <li class="settings-item">
+          <span class="item-label">File Processing</span>
+          <div class="item-actions">
+            <a href="{% url 'file_manager' %}" class="btn btn-secondary">Configure</a>
+          </div>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Approval Workflow</span>
+          <div class="item-actions">
+            <a href="{% url 'approvals_list' %}" class="btn btn-secondary">Configure</a>
+          </div>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Billing System</span>
+          <div class="item-actions">
+            <a href="{% url 'bills_list' %}" class="btn btn-secondary">Configure</a>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- System Settings -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon" style="background: #f3e8ff; color: #7c3aed;">
+          ⚙️
+        </div>
+        <h2 class="card-title">System Settings</h2>
+      </div>
+      <p class="card-description">
+        Configure system-wide settings and preferences.
+      </p>
+      <ul class="settings-list">
+        <li class="settings-item">
+          <span class="item-label">Database</span>
+          <span class="item-value">SQLite</span>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Environment</span>
+          <span class="item-value">Development</span>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Debug Mode</span>
+          <span class="item-value">Enabled</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Security -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon" style="background: #fee2e2; color: #dc2626;">
+          🔒
+        </div>
+        <h2 class="card-title">Security</h2>
+      </div>
+      <p class="card-description">
+        Manage security settings and access controls.
+      </p>
+      <ul class="settings-list">
+        <li class="settings-item">
+          <span class="item-label">User Authentication</span>
+          <span class="item-value">Django Auth</span>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">CSRF Protection</span>
+          <span class="item-value">Enabled</span>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Session Security</span>
+          <span class="item-value">Secure</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Backup & Maintenance -->
+    <div class="settings-card">
+      <div class="card-header">
+        <div class="card-icon" style="background: #e0f2fe; color: #0369a1;">
+          💾
+        </div>
+        <h2 class="card-title">Backup & Maintenance</h2>
+      </div>
+      <p class="card-description">
+        Manage data backups and system maintenance tasks.
+      </p>
+      <ul class="settings-list">
+        <li class="settings-item">
+          <span class="item-label">Database Backup</span>
+          <div class="item-actions">
+            <button class="btn btn-primary" onclick="createBackup()">Create Backup</button>
+          </div>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">System Logs</span>
+          <div class="item-actions">
+            <button class="btn btn-secondary" onclick="viewLogs()">View Logs</button>
+          </div>
+        </li>
+        <li class="settings-item">
+          <span class="item-label">Cache Management</span>
+          <div class="item-actions">
+            <button class="btn btn-secondary" onclick="clearCache()">Clear Cache</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- System Information -->
+  <div class="system-info">
+    <h3>System Information</h3>
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Application Version</span>
+        <span class="info-value">SmartRenamer Cloud v1.0</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Django Version</span>
+        <span class="info-value">5.2.6</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Python Version</span>
+        <span class="info-value">3.13.3</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Database</span>
+        <span class="info-value">SQLite 3</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Server Time</span>
+        <span class="info-value" id="server-time">{{ current_time|default:"Loading..." }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Current User</span>
+        <span class="info-value">{{ user.get_full_name|default:user.username }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Update server time
+function updateServerTime() {
+  const now = new Date();
+  const timeString = now.toLocaleString();
+  const timeElement = document.getElementById('server-time');
+  if (timeElement) {
+    timeElement.textContent = timeString;
+  }
+}
+
+// Update time every second
+setInterval(updateServerTime, 1000);
+updateServerTime();
+
+// Placeholder functions for future implementation
+function createBackup() {
+  alert('Backup functionality will be implemented in a future update.');
+}
+
+function viewLogs() {
+  alert('Log viewer will be implemented in a future update.');
+}
+
+function clearCache() {
+  alert('Cache management will be implemented in a future update.');
+}
+</script>
+{% endblock %}

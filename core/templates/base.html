@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="csrf-token" content="{{ csrf_token }}">
+  <title>{% block title %}App{% endblock %}</title>
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    .layout { display:flex; min-height:100vh; }
+    aside { width:220px; background:#111827; color:#e5e7eb; padding:16px; }
+    aside a { color:#e5e7eb; text-decoration:none; display:block; padding:8px 10px; border-radius:8px; }
+    aside a.active, aside a:hover { background:#1f2937; }
+    main { flex:1; padding:24px; }
+    .brand { font-weight:700; margin-bottom:12px; }
+    .spacer { height:8px; }
+    form.logout { margin-top:12px; }
+    form.logout button { width:100%; padding:8px 12px; border:0; border-radius:8px; background:#374151; color:#fff; cursor:pointer; }
+    form.logout button:hover { background:#4b5563; }
+    
+    /* Navigation sections */
+    .nav-section { margin: 16px 0; }
+    .nav-section-title { 
+      font-size: 11px; 
+      font-weight: 600; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px; 
+      color: #9ca3af; 
+      margin-bottom: 8px; 
+      padding: 0 10px; 
+    }
+    .nav-section a { margin-left: 8px; }
+    
+    /* Message styles */
+    .message-error {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    .message-success {
+      background: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+    .message-info {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="layout">
+    <aside>
+      {% block sidebar %}{% include "partials/sidebar.html" %}{% endblock %}
+    </aside>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% block extra_js %}{% endblock %}
+  
+  <script>
+  function stopImpersonation() {
+    if (confirm('Are you sure you want to stop impersonation and return to your admin account?')) {
+      fetch('/api/users/stop-impersonation/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          window.location.href = data.redirect_url || '/users/';
+        } else {
+          alert('Error stopping impersonation: ' + data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error stopping impersonation:', error);
+        alert('Error stopping impersonation');
+      });
+    }
+  }
+  </script>
+</body>
+</html>

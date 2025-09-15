@@ -1,0 +1,952 @@
+{% extends "base.html" %}
+
+{% block title %}Vendors{% endblock %}
+
+{% block extra_css %}
+<style>
+.vendors-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.vendors-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.vendors-title {
+  margin: 0;
+  color: #1f2937;
+}
+
+.add-vendor-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-vendor-btn:hover {
+  background: #2563eb;
+}
+
+.search-section {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.search-form {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.category-select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  min-width: 150px;
+}
+
+.category-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.search-btn:hover {
+  background: #4b5563;
+}
+
+.vendors-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.vendors-table {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.table-header {
+  background: #f9fafb;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.table-content {
+  overflow-x: auto;
+}
+
+.vendors-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.vendors-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.vendors-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.vendor-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.vendor-category {
+  background: #e5e7eb;
+  color: #374151;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.vendor-aliases {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.vendor-aliases span {
+  background: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 4px;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+.vendor-usage {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.vendor-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.vendor-classes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.class-badge {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.no-classes {
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.assign-classes-btn {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.assign-classes-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+/* Class Assignment Modal Styles */
+.classes-selection {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.classes-search {
+  margin-bottom: 16px;
+}
+
+.classes-search input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.class-group {
+  margin-bottom: 16px;
+}
+
+.class-item {
+  padding: 4px 0;
+}
+
+.class-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.class-item input[type="checkbox"] {
+  margin: 0;
+}
+
+.class-name {
+  font-weight: 500;
+}
+
+.parent-class .class-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.child-class {
+  margin-left: 20px;
+  padding-left: 8px;
+  border-left: 2px solid #e5e7eb;
+}
+
+.class-children {
+  margin-top: 8px;
+}
+
+.action-btn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #2563eb;
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.pagination a, .pagination span {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #374151;
+  font-size: 14px;
+}
+
+.pagination a:hover {
+  background: #f3f4f6;
+}
+
+.pagination .current {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  margin: 0;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.close-btn:hover {
+  color: #374151;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="vendors-container">
+  <div class="vendors-header">
+    <h1 class="vendors-title">Vendors ({{ total_vendors }})</h1>
+    <button class="add-vendor-btn" onclick="openCreateModal()">
+      <span>+</span>
+      <span>Add Vendor</span>
+    </button>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <form class="search-form" method="get">
+      <input type="text" class="search-input" name="search" value="{{ search_query }}" placeholder="Search vendors by name or aliases...">
+      <select class="category-select" name="category">
+        <option value="">All Categories</option>
+        {% for category in categories %}
+          <option value="{{ category }}" {% if category_filter == category %}selected{% endif %}>{{ category }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="search-btn">Search</button>
+      {% if search_query or category_filter %}
+        <a href="{% url 'vendors_list' %}" class="btn btn-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Vendors Table -->
+  <div class="vendors-table">
+    <div class="table-header">
+      Vendors List
+    </div>
+    <div class="table-content">
+      {% if page_obj %}
+        <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Classes</th>
+            <th>Aliases</th>
+            <th>Usage</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+          <tbody>
+            {% for vendor in page_obj %}
+              <tr>
+                <td>
+                  <div class="vendor-name">{{ vendor.name }}</div>
+                </td>
+                <td>
+                  <span class="vendor-category">{{ vendor.category }}</span>
+                </td>
+                <td>
+                  <div class="vendor-classes" id="vendor-classes-{{ vendor.id }}">
+                    {% for class_obj in vendor.classes.all %}
+                      <span class="class-badge" style="background-color: {{ class_obj.color }}20; color: {{ class_obj.color }}; border: 1px solid {{ class_obj.color }}40;">
+                        {{ class_obj.name }}
+                      </span>
+                    {% empty %}
+                      <span class="no-classes">No classes assigned</span>
+                    {% endfor %}
+                  </div>
+                  <button class="assign-classes-btn" onclick="openClassAssignmentModal({{ vendor.id }}, '{{ vendor.name|escapejs }}')">
+                    Assign Classes
+                  </button>
+                </td>
+                <td>
+                  <div class="vendor-aliases">
+                    {% for alias in vendor.aliases %}
+                      <span>{{ alias }}</span>
+                    {% empty %}
+                      —
+                    {% endfor %}
+                  </div>
+                </td>
+                <td>
+                  <div class="vendor-usage">{{ vendor.usage_count }} times</div>
+                </td>
+                <td>
+                  <div class="vendor-actions">
+                    <button class="action-btn edit-btn" onclick="openEditModal({{ vendor.id }}, '{{ vendor.name|escapejs }}', '{{ vendor.category|escapejs }}', {{ vendor.aliases|safe }})">
+                      Edit
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deleteVendor({{ vendor.id }}, '{{ vendor.name|escapejs }}')">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">🏪</div>
+          <h3>No vendors found</h3>
+          <p>{% if search_query or category_filter %}Try adjusting your search criteria.{% else %}Create your first vendor to get started.{% endif %}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">Previous</a>
+      {% endif %}
+      
+      <span class="current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if category_filter %}&category={{ category_filter }}{% endif %}">Last</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Create/Edit Vendor Modal -->
+<div id="vendorModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Add Vendor</h2>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    
+    <form id="vendorForm">
+      {% csrf_token %}
+      <input type="hidden" id="vendorId" name="vendor_id">
+      
+      <div class="form-group">
+        <label class="form-label" for="vendorName">Vendor Name *</label>
+        <input type="text" class="form-input" id="vendorName" name="name" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="vendorCategory">Category</label>
+        <select class="form-select" id="vendorCategory" name="category">
+          <option value="Other">Other</option>
+          <option value="Business Services">Business Services</option>
+          <option value="Construction">Construction</option>
+          <option value="Flooring & Tile">Flooring & Tile</option>
+          <option value="Government">Government</option>
+          <option value="Hardware Store">Hardware Store</option>
+          <option value="Landscaping">Landscaping</option>
+          <option value="Transportation/Shipping">Transportation/Shipping</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="vendorAliases">Aliases (one per line)</label>
+        <textarea class="form-textarea" id="vendorAliases" name="aliases" placeholder="Enter aliases, one per line..."></textarea>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Save Vendor</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let isEditMode = false;
+let currentVendorId = null;
+let vendors = [];
+let classes = [];
+
+// Initialize data
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    vendors = JSON.parse('{{ vendors_json|escapejs }}');
+    classes = JSON.parse('{{ classes_json|escapejs }}');
+  } catch (error) {
+    console.error('Error parsing JSON data:', error);
+  }
+});
+
+function openCreateModal() {
+  isEditMode = false;
+  currentVendorId = null;
+  document.getElementById('modalTitle').textContent = 'Add Vendor';
+  document.getElementById('submitBtn').textContent = 'Save Vendor';
+  document.getElementById('vendorForm').reset();
+  document.getElementById('vendorModal').style.display = 'block';
+}
+
+function openEditModal(id, name, category, aliases) {
+  isEditMode = true;
+  currentVendorId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Vendor';
+  document.getElementById('submitBtn').textContent = 'Update Vendor';
+  
+  document.getElementById('vendorId').value = id;
+  document.getElementById('vendorName').value = name;
+  document.getElementById('vendorCategory').value = category;
+  document.getElementById('vendorAliases').value = aliases.join('\n');
+  
+  document.getElementById('vendorModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('vendorModal').style.display = 'none';
+}
+
+function deleteVendor(id, name) {
+  if (confirm(`Are you sure you want to delete the vendor "${name}"?`)) {
+    fetch(`/vendors/delete/${id}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showMessage(data.message, 'success');
+        location.reload();
+      } else {
+        showMessage(data.message, 'error');
+      }
+    })
+    .catch(error => {
+      showMessage('Error deleting vendor', 'error');
+    });
+  }
+}
+
+document.getElementById('vendorForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = {
+    name: document.getElementById('vendorName').value.trim(),
+    category: document.getElementById('vendorCategory').value,
+    aliases: document.getElementById('vendorAliases').value.split('\n').filter(alias => alias.trim())
+  };
+  
+  const url = isEditMode ? `/vendors/update/${currentVendorId}/` : '/vendors/create/';
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(formData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage(data.message, 'success');
+      closeModal();
+      location.reload();
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    showMessage('Error saving vendor', 'error');
+  });
+});
+
+function showMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message message-${type}`;
+  messageDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 12px; border-radius: 4px; min-width: 300px;';
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    messageDiv.style.opacity = '0';
+    setTimeout(() => messageDiv.remove(), 300);
+  }, 3000);
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('vendorModal');
+  if (event.target === modal) {
+    closeModal();
+  }
+}
+
+function openClassAssignmentModal(vendorId, vendorName) {
+  currentVendorId = vendorId;
+  document.getElementById('classModalTitle').textContent = `Assign Classes - ${vendorName}`;
+  document.getElementById('classModalDescription').textContent = `Select classes for ${vendorName}:`;
+  
+  // Find vendor's current classes
+  const vendor = vendors.find(v => v.id === vendorId);
+  const currentClassIds = vendor ? vendor.classes.map(c => c.id) : [];
+  
+  // Populate classes list
+  const classesList = document.getElementById('classesList');
+  classesList.innerHTML = '';
+  
+  // Group classes by parent
+  const parentClasses = classes.filter(c => !c.is_child);
+  const childClasses = classes.filter(c => c.is_child);
+  
+  parentClasses.forEach(parentClass => {
+    // Add parent class
+    const parentDiv = document.createElement('div');
+    parentDiv.className = 'class-group';
+    parentDiv.innerHTML = `
+      <div class="class-item parent-class" data-class-id="${parentClass.id}">
+        <label>
+          <input type="checkbox" value="${parentClass.id}" ${currentClassIds.includes(parentClass.id) ? 'checked' : ''}>
+          <span class="class-name" style="color: ${parentClass.color}">${parentClass.name}</span>
+        </label>
+      </div>
+    `;
+    classesList.appendChild(parentDiv);
+    
+    // Add child classes
+    const children = childClasses.filter(c => c.parent_id === parentClass.id);
+    if (children.length > 0) {
+      const childrenDiv = document.createElement('div');
+      childrenDiv.className = 'class-children';
+      childrenDiv.innerHTML = children.map(childClass => `
+        <div class="class-item child-class" data-class-id="${childClass.id}">
+          <label>
+            <input type="checkbox" value="${childClass.id}" ${currentClassIds.includes(childClass.id) ? 'checked' : ''}>
+            <span class="class-name">${childClass.name}</span>
+          </label>
+        </div>
+      `).join('');
+      classesList.appendChild(childrenDiv);
+    }
+  });
+  
+  document.getElementById('classAssignmentModal').style.display = 'block';
+}
+
+function closeClassAssignmentModal() {
+  document.getElementById('classAssignmentModal').style.display = 'none';
+  currentVendorId = null;
+}
+
+function filterClasses() {
+  const searchTerm = document.getElementById('classSearch').value.toLowerCase();
+  const classItems = document.querySelectorAll('.class-item');
+  
+  classItems.forEach(item => {
+    const className = item.querySelector('.class-name').textContent.toLowerCase();
+    const matches = className.includes(searchTerm);
+    item.style.display = matches ? 'block' : 'none';
+  });
+}
+
+function saveClassAssignments() {
+  if (!currentVendorId) return;
+  
+  const selectedClasses = Array.from(document.querySelectorAll('#classesList input[type="checkbox"]:checked'))
+    .map(checkbox => parseInt(checkbox.value));
+  
+  const saveBtn = event.target;
+  const originalText = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ Saving...';
+  
+  fetch('{% url "update_vendor_classes" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      vendor_id: currentVendorId,
+      class_ids: selectedClasses
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage(data.message, 'success');
+      closeClassAssignmentModal();
+      // Update the vendor's classes in the local data
+      const vendor = vendors.find(v => v.id === currentVendorId);
+      if (vendor) {
+        vendor.classes = selectedClasses.map(classId => {
+          const classObj = classes.find(c => c.id === classId);
+          return {
+            id: classObj.id,
+            name: classObj.name,
+            full_name: classObj.full_name,
+            color: classObj.color,
+            parent_name: classObj.parent_name
+          };
+        });
+        // Refresh the page to show updated classes
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error saving class assignments:', error);
+    showMessage('Error saving class assignments', 'error');
+  })
+  .finally(() => {
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
+  });
+}
+
+// Close class assignment modal when clicking outside
+window.addEventListener('click', function(event) {
+  const modal = document.getElementById('classAssignmentModal');
+  if (event.target === modal) {
+    closeClassAssignmentModal();
+  }
+});
+</script>
+
+<!-- Class Assignment Modal -->
+<div id="classAssignmentModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="classModalTitle">Assign Classes</h2>
+      <button class="close-btn" onclick="closeClassAssignmentModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <p id="classModalDescription">Select classes for this vendor:</p>
+      
+      <div class="classes-selection">
+        <div class="classes-search">
+          <input type="text" id="classSearch" placeholder="Search classes..." onkeyup="filterClasses()">
+        </div>
+        
+        <div class="classes-list" id="classesList">
+          <!-- Classes will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-secondary" onclick="closeClassAssignmentModal()">
+        Cancel
+      </button>
+      <button type="button" class="modal-btn modal-btn-primary" onclick="saveClassAssignments()">
+        Save Classes
+      </button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

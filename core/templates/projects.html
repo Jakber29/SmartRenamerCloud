@@ -1,0 +1,922 @@
+{% extends "base.html" %}
+
+{% block title %}Projects{% endblock %}
+
+{% block extra_css %}
+<style>
+.projects-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.projects-title {
+  margin: 0;
+  color: #1f2937;
+}
+
+.add-project-btn {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.add-project-btn:hover {
+  background: #2563eb;
+}
+
+.search-section {
+  background: #f9fafb;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.search-form {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.search-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.search-btn:hover {
+  background: #4b5563;
+}
+
+.projects-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.projects-table {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.table-header {
+  background: #f9fafb;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  color: #374151;
+}
+
+.table-content {
+  overflow-x: auto;
+}
+
+.projects-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.projects-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.projects-table td {
+  padding: 12px;
+  border-bottom: 1px solid #f3f4f6;
+  vertical-align: top;
+}
+
+.project-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.project-address {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.project-aliases {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.project-aliases span {
+  background: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 4px;
+  display: inline-block;
+  margin-bottom: 2px;
+}
+
+.project-superintendents {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.superintendent-badge {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.no-superintendent {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.btn-sm {
+  padding: 2px 6px;
+  font-size: 10px;
+  min-width: auto;
+}
+
+.project-fee {
+  font-weight: 500;
+  color: #059669;
+}
+
+.project-usage {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.project-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #2563eb;
+}
+
+.delete-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.pagination a, .pagination span {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  text-decoration: none;
+  color: #374151;
+  font-size: 14px;
+}
+
+.pagination a:hover {
+  background: #f3f4f6;
+}
+
+.pagination .current {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 24px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  margin: 0;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.close-btn:hover {
+  color: #374151;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* Superintendent Modal Styles */
+.superintendent-item {
+  margin-bottom: 12px;
+}
+
+.superintendent-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.superintendent-item label:hover {
+  background-color: #f3f4f6;
+}
+
+.superintendent-item input[type="checkbox"] {
+  margin: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.loading {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+}
+
+.error {
+  color: #dc2626;
+  text-align: center;
+  padding: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="projects-container">
+  <div class="projects-header">
+    <h1 class="projects-title">Projects ({{ total_projects }})</h1>
+    <button class="add-project-btn" onclick="openCreateModal()">
+      <span>+</span>
+      <span>Add Project</span>
+    </button>
+  </div>
+
+  <!-- Search Section -->
+  <div class="search-section">
+    <form class="search-form" method="get">
+      <input type="text" class="search-input" name="search" value="{{ search_query }}" placeholder="Search projects by name, address, or aliases...">
+      <button type="submit" class="search-btn">Search</button>
+      {% if search_query %}
+        <a href="{% url 'projects_list' %}" class="btn btn-secondary">Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  <!-- Projects Table -->
+  <div class="projects-table">
+    <div class="table-header">
+      Projects List
+    </div>
+    <div class="table-content">
+      {% if page_obj %}
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Address</th>
+              <th>Superintendents</th>
+              <th>Aliases</th>
+              <th>Builders Fee</th>
+              <th>Usage</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for project in page_obj %}
+              <tr>
+                <td>
+                  <div class="project-name">{{ project.name }}</div>
+                </td>
+                <td>
+                  <div class="project-address">{{ project.address|default:"—" }}</div>
+                </td>
+                <td>
+                  <div class="project-superintendents">
+                    {% for super in project.assigned_superintendents %}
+                      <span class="superintendent-badge">{{ super.get_full_name|default:super.username }}</span>
+                    {% empty %}
+                      <span class="no-superintendent">No superintendents assigned</span>
+                    {% endfor %}
+                    <button class="btn btn-sm btn-primary" onclick="assignSuperintendents({{ project.id }})" title="Assign Superintendents">
+                      {% if project.assigned_superintendents %}Edit{% else %}Assign{% endif %}
+                    </button>
+                  </div>
+                </td>
+                <td>
+                  <div class="project-aliases">
+                    {% for alias in project.aliases %}
+                      <span>{{ alias }}</span>
+                    {% empty %}
+                      —
+                    {% endfor %}
+                  </div>
+                </td>
+                <td>
+                  {% if project.builders_fee %}
+                    <div class="project-fee">${{ project.builders_fee }}</div>
+                  {% else %}
+                    —
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="project-usage">{{ project.usage_count }} times</div>
+                </td>
+                <td>
+                  <div class="project-actions">
+                    <button class="action-btn edit-btn" onclick="openEditModal({{ project.id }}, '{{ project.name|escapejs }}', '{{ project.address|escapejs }}', '{{ project.aliases|join:","|escapejs }}', {{ project.builders_fee|default:"null" }})">
+                      ✏️ Edit
+                    </button>
+                    <button class="action-btn delete-btn" onclick="deleteProject({{ project.id }}, '{{ project.name|escapejs }}')">
+                      Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">📁</div>
+          <h3>No projects found</h3>
+          <p>{% if search_query %}Try adjusting your search criteria.{% else %}Create your first project to get started.{% endif %}</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if page_obj.has_other_pages %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}">First</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+      {% endif %}
+      
+      <span class="current">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+      </span>
+      
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}">Last</a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Create/Edit Project Modal -->
+<div id="projectModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modalTitle">Add Project</h2>
+      <button class="close-btn" onclick="closeModal()">&times;</button>
+    </div>
+    
+    <form id="projectForm">
+      {% csrf_token %}
+      <input type="hidden" id="projectId" name="project_id">
+      
+      <div class="form-group">
+        <label class="form-label" for="projectName">Project Name *</label>
+        <input type="text" class="form-input" id="projectName" name="name" required>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="projectAddress">Address</label>
+        <input type="text" class="form-input" id="projectAddress" name="address">
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="projectAliases">Aliases (one per line)</label>
+        <textarea class="form-textarea" id="projectAliases" name="aliases" placeholder="Enter aliases, one per line..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="projectFee">Builders Fee ($)</label>
+        <input type="number" class="form-input" id="projectFee" name="builders_fee" step="0.01" min="0">
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Save Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let isEditMode = false;
+let currentProjectId = null;
+
+function openCreateModal() {
+  console.log('openCreateModal called');
+  isEditMode = false;
+  currentProjectId = null;
+  document.getElementById('modalTitle').textContent = 'Add Project';
+  document.getElementById('submitBtn').textContent = 'Save Project';
+  document.getElementById('projectForm').reset();
+  document.getElementById('projectModal').style.display = 'block';
+}
+
+function openEditModal(id, name, address, aliases, buildersFee) {
+  console.log('openEditModal called with:', { id, name, address, aliases, buildersFee });
+  
+  isEditMode = true;
+  currentProjectId = id;
+  document.getElementById('modalTitle').textContent = 'Edit Project';
+  document.getElementById('submitBtn').textContent = 'Update Project';
+  
+  // Handle aliases - it might be a string or array
+  let aliasesArray = [];
+  if (typeof aliases === 'string') {
+    if (aliases.trim() === '') {
+      aliasesArray = [];
+    } else {
+      aliasesArray = aliases.split(',').map(a => a.trim()).filter(a => a);
+    }
+  } else if (Array.isArray(aliases)) {
+    aliasesArray = aliases;
+  }
+  
+  document.getElementById('projectId').value = id;
+  document.getElementById('projectName').value = name || '';
+  document.getElementById('projectAddress').value = address || '';
+  document.getElementById('projectAliases').value = aliasesArray.join('\n');
+  document.getElementById('projectFee').value = buildersFee || '';
+  
+  document.getElementById('projectModal').style.display = 'block';
+}
+
+function closeModal() {
+  document.getElementById('projectModal').style.display = 'none';
+}
+
+function deleteProject(id, name) {
+  if (confirm(`Are you sure you want to delete the project "${name}"?`)) {
+    fetch(`/projects/delete/${id}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showMessage(data.message, 'success');
+        location.reload();
+      } else {
+        showMessage(data.message, 'error');
+      }
+    })
+    .catch(error => {
+      showMessage('Error deleting project', 'error');
+    });
+  }
+}
+
+document.getElementById('projectForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  const formData = {
+    name: document.getElementById('projectName').value.trim(),
+    address: document.getElementById('projectAddress').value.trim(),
+    aliases: document.getElementById('projectAliases').value.split('\n').filter(alias => alias.trim()),
+    builders_fee: document.getElementById('projectFee').value ? parseFloat(document.getElementById('projectFee').value) : null
+  };
+  
+  const url = isEditMode ? `/projects/update/${currentProjectId}/` : '/projects/create/';
+  
+  console.log('Submitting project form:', { isEditMode, currentProjectId, url, formData });
+  
+  // Disable submit button during request
+  const submitBtn = document.getElementById('submitBtn');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = isEditMode ? 'Updating...' : 'Creating...';
+  
+  fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(formData)
+  })
+  .then(response => {
+    console.log('Response status:', response.status);
+    return response.json();
+  })
+  .then(data => {
+    console.log('Response data:', data);
+    if (data.success) {
+      showMessage(data.message || (isEditMode ? 'Project updated successfully!' : 'Project created successfully!'), 'success');
+      closeModal();
+      setTimeout(() => location.reload(), 1000);
+    } else {
+      showMessage(data.message || 'Failed to save project', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error saving project:', error);
+    showMessage('Error saving project', 'error');
+  })
+  .finally(() => {
+    // Re-enable submit button
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  });
+});
+
+function showMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message message-${type}`;
+  messageDiv.style.cssText = `
+    position: fixed; 
+    top: 20px; 
+    right: 20px; 
+    z-index: 10000; 
+    padding: 16px 20px; 
+    border-radius: 8px; 
+    min-width: 300px;
+    max-width: 500px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    transition: opacity 0.3s ease;
+  `;
+  
+  // Set colors based on type
+  if (type === 'success') {
+    messageDiv.style.backgroundColor = '#dcfce7';
+    messageDiv.style.color = '#166534';
+    messageDiv.style.border = '1px solid #bbf7d0';
+  } else if (type === 'error') {
+    messageDiv.style.backgroundColor = '#fee2e2';
+    messageDiv.style.color = '#991b1b';
+    messageDiv.style.border = '1px solid #fecaca';
+  }
+  
+  messageDiv.textContent = message;
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    messageDiv.style.opacity = '0';
+    setTimeout(() => messageDiv.remove(), 300);
+  }, 4000);
+}
+
+function assignSuperintendents(projectId) {
+  console.log('assignSuperintendents called with projectId:', projectId);
+  
+  // Create modal for superintendent assignment
+  const modal = document.createElement('div');
+  modal.className = 'modal';
+  modal.id = 'superintendentModal';
+  modal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>👥 Assign Superintendents</h3>
+        <button class="close-btn" onclick="closeSuperintendentModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p style="margin-bottom: 20px; color: #6b7280; font-size: 14px;">
+          Select the superintendents you want to assign to this project. You can select multiple superintendents.
+        </p>
+        <div id="superintendent-list">
+          <div class="loading">Loading superintendents...</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeSuperintendentModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSuperintendentAssignments(${projectId})" id="save-superintendents-btn">
+          💾 Save Assignments
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  modal.style.display = 'block';
+  
+  // Load superintendents
+  loadSuperintendents(projectId);
+}
+
+function loadSuperintendents(projectId) {
+  console.log('Loading superintendents for project:', projectId);
+  
+  fetch(`/api/projects/${projectId}/superintendents/`)
+    .then(response => {
+      console.log('Response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Superintendents data:', data);
+      const listDiv = document.getElementById('superintendent-list');
+      
+      if (data.success) {
+        if (data.superintendents && data.superintendents.length > 0) {
+          listDiv.innerHTML = data.superintendents.map(superintendent => `
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" value="${superintendent.id}" ${superintendent.assigned ? 'checked' : ''} style="margin: 0;">
+                <span>${superintendent.name}</span>
+              </label>
+            </div>
+          `).join('');
+        } else {
+          listDiv.innerHTML = '<div style="color: #6b7280; text-align: center; padding: 20px;">No superintendents found</div>';
+        }
+      } else {
+        listDiv.innerHTML = `<div style="color: #dc2626; text-align: center; padding: 20px;">Error: ${data.message || 'Failed to load superintendents'}</div>`;
+      }
+    })
+    .catch(error => {
+      console.error('Error loading superintendents:', error);
+      const listDiv = document.getElementById('superintendent-list');
+      listDiv.innerHTML = '<div style="color: #dc2626; text-align: center; padding: 20px;">Error loading superintendents. Please try again.</div>';
+    });
+}
+
+function saveSuperintendentAssignments(projectId) {
+  const checkboxes = document.querySelectorAll('#superintendent-list input[type="checkbox"]:checked');
+  const superintendentIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+  
+  console.log('Saving superintendent assignments for project:', projectId);
+  console.log('Selected superintendent IDs:', superintendentIds);
+  
+  // Disable save button during request
+  const saveBtn = document.getElementById('save-superintendents-btn');
+  const originalText = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ Saving...';
+  
+  fetch(`/api/projects/${projectId}/assign-superintendents/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      superintendent_ids: superintendentIds
+    })
+  })
+  .then(response => {
+    console.log('Save response status:', response.status);
+    return response.json();
+  })
+  .then(data => {
+    console.log('Save response data:', data);
+    if (data.success) {
+      showMessage(data.message || 'Superintendents assigned successfully!', 'success');
+      closeSuperintendentModal();
+      // Reload page to show updated assignments
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      showMessage(data.message || 'Failed to assign superintendents', 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error saving assignments:', error);
+    showMessage('Error saving assignments', 'error');
+  })
+  .finally(() => {
+    // Re-enable save button
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
+  });
+}
+
+function closeSuperintendentModal() {
+  const modal = document.getElementById('superintendentModal');
+  if (modal) {
+    modal.remove();
+  }
+}
+
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+  const modal = document.getElementById('projectModal');
+  if (event.target === modal) {
+    closeModal();
+  }
+  
+  const superModal = document.getElementById('superintendentModal');
+  if (event.target === superModal) {
+    closeSuperintendentModal();
+  }
+}
+
+// Add event listeners when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded, JavaScript is working');
+  
+  // Test if we can find the modal
+  const modal = document.getElementById('projectModal');
+  if (modal) {
+    console.log('Modal found:', modal);
+  } else {
+    console.error('Modal not found!');
+  }
+  
+  // Test if we can find form elements
+  const form = document.getElementById('projectForm');
+  if (form) {
+    console.log('Form found:', form);
+  } else {
+    console.error('Form not found!');
+  }
+});
+</script>
+{% endblock %}

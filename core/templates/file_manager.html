@@ -1,0 +1,1063 @@
+{% extends "base.html" %}
+
+{% block title %}File Manager{% endblock %}
+
+{% block extra_css %}
+<style>
+.file-manager-layout {
+  display: flex;
+  height: calc(100vh - 48px); /* Full height minus main padding */
+  gap: 1px;
+  background: #e5e7eb;
+}
+
+.panel {
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.left-panel {
+  width: 25%;
+  min-width: 300px;
+}
+
+.middle-panel {
+  width: 50%;
+  flex: 1;
+}
+
+.right-panel {
+  width: 25%;
+  min-width: 280px;
+}
+
+.panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.search-box {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 4px;
+}
+
+.file-item:hover {
+  background: #f3f4f6;
+}
+
+.file-item.selected {
+  background: #dbeafe;
+  border: 1px solid #3b82f6;
+}
+
+.file-icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+.file-meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.preview-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+}
+
+.preview-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+.upload-area {
+  background: #f9fafb;
+  border: 2px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upload-area:hover {
+  border-color: #3b82f6;
+  background: #f0f9ff;
+}
+
+.upload-area.dragover {
+  border-color: #3b82f6;
+  background: #dbeafe;
+}
+
+.upload-input {
+  display: none;
+}
+
+.navigation-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Autocomplete Styles */
+.autocomplete-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.autocomplete-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.active {
+  background: #f3f4f6;
+}
+
+.autocomplete-suggestion:last-child {
+  border-bottom: none;
+}
+
+.suggestion-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.suggestion-details {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.suggestion-aliases {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 1px;
+}
+
+.suggestion-aliases span {
+  background: #e5e7eb;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-right: 3px;
+}
+
+/* File Section Styles */
+.file-section {
+  margin-bottom: 24px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.section-icon {
+  font-size: 16px;
+}
+
+.section-title {
+  flex: 1;
+}
+
+.section-count {
+  background: #e2e8f0;
+  color: #64748b;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.file-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.empty-state {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+  font-size: 14px;
+}
+
+.empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-weight: 500;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="file-manager-layout">
+  <!-- Left Panel: File List -->
+  <div class="panel left-panel">
+    <div class="panel-header">
+      <span>📁</span>
+      <span>File Manager</span>
+    </div>
+    <div class="panel-content">
+      <!-- Upload Area -->
+      <div class="upload-area" onclick="document.getElementById('file-upload').click()">
+        <div style="font-size: 24px; margin-bottom: 8px;">📤</div>
+        <div style="font-weight: 500; margin-bottom: 4px;">Drop files here or click to upload</div>
+        <div style="font-size: 12px; color: #6b7280;">Supports PDF, images, and documents</div>
+        <form id="upload-form" method="post" action="{% url 'upload_file' %}" enctype="multipart/form-data" style="display: none;">
+          {% csrf_token %}
+          <input type="file" id="file-upload" name="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+          <input type="text" name="description" placeholder="Description (optional)">
+        </form>
+      </div>
+
+      <!-- Search -->
+      <input type="text" class="search-box" placeholder="Search files..." id="search-input">
+
+      <!-- File Count -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; color: #6b7280;">
+        <span class="file-count">{{ unprocessed_files|length|add:processed_files|length }} files</span>
+        <button onclick="location.reload()" style="background: none; border: none; cursor: pointer; padding: 4px;">🔄</button>
+      </div>
+
+      <!-- Unprocessed Files Section -->
+      <div class="file-section">
+        <div class="section-header">
+          <span class="section-icon">📋</span>
+          <span class="section-title">Unprocessed Files</span>
+          <span class="section-count">({{ unprocessed_files|length }})</span>
+        </div>
+        <div id="unprocessed-file-list" class="file-list">
+          {% for file in unprocessed_files %}
+            <div class="file-item" data-file-id="{{ file.id }}" data-file-type="unprocessed">
+              <div class="file-icon">
+                {% if file.file_type == '.pdf' %}📄
+                {% elif file.file_type == '.doc' or file.file_type == '.docx' %}📝
+                {% elif file.file_type == '.jpg' or file.file_type == '.jpeg' or file.file_type == '.png' %}🖼️
+                {% elif file.file_type == '.zip' or file.file_type == '.rar' %}📦
+                {% else %}📁{% endif %}
+              </div>
+              <div class="file-info">
+                <div class="file-name">{{ file.name }}</div>
+                <div class="file-meta">{{ file.file_size_display }} • {{ file.uploaded_at|date:"M d, Y" }}</div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-text">No unprocessed files</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Processed Files Section -->
+      <div class="file-section">
+        <div class="section-header">
+          <span class="section-icon">✅</span>
+          <span class="section-title">Processed Files</span>
+          <span class="section-count">({{ processed_files|length }})</span>
+        </div>
+        <div id="processed-file-list" class="file-list">
+          {% for file in processed_files %}
+            <div class="file-item" data-file-id="{{ file.id }}" data-file-type="processed">
+              <div class="file-icon">
+                {% if file.file_type == '.pdf' %}📄
+                {% elif file.file_type == '.doc' or file.file_type == '.docx' %}📝
+                {% elif file.file_type == '.jpg' or file.file_type == '.jpeg' or file.file_type == '.png' %}🖼️
+                {% elif file.file_type == '.zip' or file.file_type == '.rar' %}📦
+                {% else %}📁{% endif %}
+              </div>
+              <div class="file-info">
+                <div class="file-name">{{ file.name }}</div>
+                <div class="file-meta">{{ file.file_size_display }} • {{ file.uploaded_at|date:"M d, Y" }}</div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="empty-state">
+              <div class="empty-icon">✅</div>
+              <div class="empty-text">No processed files</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle Panel: PDF Preview -->
+  <div class="panel middle-panel">
+    <div class="panel-header">
+      <span>👁️</span>
+      <span id="preview-title">NO FILE SELECTED</span>
+    </div>
+    <div class="panel-content">
+      <div class="preview-area" id="preview-area">
+        <div class="preview-icon">🖼️</div>
+        <div>Select a file to preview</div>
+      </div>
+      <div id="pdf-preview" style="display: none; width: 100%; height: 100%;">
+        <iframe id="pdf-iframe" style="width: 100%; height: 100%; border: none;" src="about:blank" onerror="console.error('Iframe load error')"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel: Renaming Tool -->
+  <div class="panel right-panel">
+    <div class="panel-header">
+      <span>✏️</span>
+      <span>Rename</span>
+    </div>
+    <div class="panel-content">
+      <form id="rename-form">
+        {% csrf_token %}
+        <input type="hidden" id="selected-file-id" name="file_id">
+        
+        <div class="form-group">
+          <label class="form-label" for="project">Project</label>
+          <div class="autocomplete-container">
+            <input type="text" class="form-input" id="project" name="project" placeholder="Project name..." autocomplete="off">
+            <div class="autocomplete-suggestions" id="project-suggestions" style="display: none;"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="vendor">Vendor</label>
+          <div class="autocomplete-container">
+            <input type="text" class="form-input" id="vendor" name="vendor" placeholder="Vendor name..." autocomplete="off">
+            <div class="autocomplete-suggestions" id="vendor-suggestions" style="display: none;"></div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="date">Date</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="date" name="date" placeholder="MM-DD-YY">
+            <input type="date" class="form-input" id="date-picker" style="width: auto; min-width: 140px;" onchange="updateDateFromPicker()">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="invoice-number">Invoice Number</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" class="form-input" id="invoice-number" name="invoice_number" placeholder="Invoice number...">
+            <button type="button" class="btn btn-secondary" id="default-invoice-btn" style="white-space: nowrap;"># Default</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="total">Total</label>
+          <input type="text" class="form-input" id="total" name="total" value="$0.00">
+        </div>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button type="submit" class="btn btn-primary">
+            <span>📄</span>
+            <span>Rename File</span>
+          </button>
+        </div>
+
+        <div class="navigation-buttons">
+          <button type="button" class="btn btn-secondary" id="prev-btn" disabled>
+            <span>←</span>
+            <span>Previous</span>
+          </button>
+          <button type="button" class="btn btn-secondary" id="next-btn" disabled>
+            <span>Next</span>
+            <span>→</span>
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+    {% for message in messages %}
+      <div class="message message-{{ message.tags }}" style="padding: 12px; border-radius: 4px; margin-bottom: 8px; min-width: 300px;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<script>
+let selectedFileId = null;
+let files = JSON.parse('{{ files_json|escapejs }}');
+
+function selectFile(fileId) {
+  // Remove previous selection
+  document.querySelectorAll('.file-item').forEach(item => {
+    item.classList.remove('selected');
+  });
+  
+  // Add selection to clicked item
+  document.querySelector(`[data-file-id="${fileId}"]`).classList.add('selected');
+  
+  selectedFileId = fileId;
+  const file = files.find(f => f.id === fileId);
+  
+  if (file) {
+    // Update preview title
+    document.getElementById('preview-title').textContent = file.name;
+    
+    // Show preview based on file type
+    if (file.file_type === '.pdf') {
+      // Show PDF preview
+      document.getElementById('preview-area').style.display = 'none';
+      document.getElementById('pdf-preview').style.display = 'block';
+      const pdfUrl = `/files/preview/${file.id}/`;
+      document.getElementById('pdf-iframe').src = pdfUrl;
+    } else if (file.file_type === '.jpg' || file.file_type === '.jpeg' || file.file_type === '.png' || file.file_type === '.gif' || file.file_type === '.webp') {
+      // Show image preview
+      document.getElementById('preview-area').style.display = 'flex';
+      document.getElementById('pdf-preview').style.display = 'none';
+      document.querySelector('.preview-icon').textContent = '';
+      document.querySelector('.preview-area div:last-child').innerHTML = `<img src="/files/preview/${file.id}/" alt="${file.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;">`;
+    } else {
+      // Show generic preview
+      document.getElementById('preview-area').style.display = 'flex';
+      document.getElementById('pdf-preview').style.display = 'none';
+      document.querySelector('.preview-icon').textContent = '📄';
+      document.querySelector('.preview-area div:last-child').textContent = 'Preview not available for this file type';
+    }
+    
+    // Update form with file data
+    document.getElementById('selected-file-id').value = fileId;
+    
+    // Load metadata from the file
+    document.getElementById('project').value = file.project || '';
+    document.getElementById('vendor').value = file.vendor || '';
+    document.getElementById('date').value = file.date || '';
+    document.getElementById('invoice-number').value = file.invoice_number || '';
+    document.getElementById('total').value = file.total || '$0.00';
+    
+    // Update the files array with the current metadata
+    const fileIndex = files.findIndex(f => f.id === fileId);
+    if (fileIndex !== -1) {
+      files[fileIndex] = file;
+    }
+    
+    // Enable navigation buttons
+    document.getElementById('prev-btn').disabled = false;
+    document.getElementById('next-btn').disabled = false;
+    
+  }
+}
+
+// File upload handling
+document.getElementById('file-upload').addEventListener('change', function(e) {
+  if (e.target.files.length > 0) {
+    document.getElementById('upload-form').submit();
+  }
+});
+
+// Drag and drop
+const uploadArea = document.querySelector('.upload-area');
+uploadArea.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', function(e) {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    document.getElementById('file-upload').files = files;
+    document.getElementById('upload-form').submit();
+  }
+});
+
+// Search functionality
+document.getElementById('search-input').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  
+  // Search in both unprocessed and processed file lists
+  document.querySelectorAll('.file-item').forEach(item => {
+    const fileName = item.querySelector('.file-name').textContent.toLowerCase();
+    if (fileName.includes(searchTerm)) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+  
+  // Show/hide section headers based on whether they have visible files
+  const unprocessedSection = document.querySelector('#unprocessed-file-list').closest('.file-section');
+  const processedSection = document.querySelector('#processed-file-list').closest('.file-section');
+  
+  const unprocessedVisible = Array.from(document.querySelectorAll('#unprocessed-file-list .file-item')).some(item => 
+    item.style.display !== 'none'
+  );
+  const processedVisible = Array.from(document.querySelectorAll('#processed-file-list .file-item')).some(item => 
+    item.style.display !== 'none'
+  );
+  
+  unprocessedSection.style.display = unprocessedVisible ? 'block' : 'none';
+  processedSection.style.display = processedVisible ? 'block' : 'none';
+});
+
+// Rename form submission
+document.getElementById('rename-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  if (!selectedFileId) {
+    alert('Please select a file first');
+    return;
+  }
+  
+  const formData = {
+    file_id: selectedFileId,
+    project: document.getElementById('project').value,
+    vendor: document.getElementById('vendor').value,
+    date: document.getElementById('date').value,
+    invoice_number: document.getElementById('invoice-number').value,
+    total: document.getElementById('total').value
+  };
+  
+  try {
+    const response = await fetch('{% url "rename_file" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify(formData)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Update the file name in the list
+      const fileItem = document.querySelector(`[data-file-id="${selectedFileId}"]`);
+      const fileNameElement = fileItem.querySelector('.file-name');
+      fileNameElement.textContent = result.new_name;
+      
+      // Update preview title
+      document.getElementById('preview-title').textContent = result.new_name;
+      
+      // Update the files array with the new metadata
+      const fileIndex = files.findIndex(f => f.id === selectedFileId);
+      if (fileIndex !== -1) {
+        files[fileIndex].name = result.new_name;
+        files[fileIndex].project = formData.project;
+        files[fileIndex].vendor = formData.vendor;
+        files[fileIndex].date = formData.date;
+        files[fileIndex].invoice_number = formData.invoice_number;
+        files[fileIndex].total = formData.total;
+        files[fileIndex].is_processed = true; // Mark as processed
+      }
+      
+      // Move file from unprocessed to processed bucket if it has metadata
+      const hasMetadata = formData.project || formData.vendor || formData.date;
+      if (hasMetadata && fileItem.getAttribute('data-file-type') === 'unprocessed') {
+        moveFileToProcessedBucket(fileItem);
+      }
+      
+      showMessage(result.message, 'success');
+    } else {
+      showMessage(result.message, 'error');
+    }
+  } catch (error) {
+    showMessage('Error renaming file', 'error');
+  }
+});
+
+
+// Function to move file from unprocessed to processed bucket
+function moveFileToProcessedBucket(fileItem) {
+  const processedList = document.getElementById('processed-file-list');
+  const unprocessedList = document.getElementById('unprocessed-file-list');
+  
+  // Clone the file item
+  const clonedItem = fileItem.cloneNode(true);
+  clonedItem.setAttribute('data-file-type', 'processed');
+  
+  // Remove from unprocessed list
+  fileItem.remove();
+  
+  // Add to processed list
+  processedList.appendChild(clonedItem);
+  
+  // Add click event listener to the new item
+  clonedItem.addEventListener('click', function() {
+    const fileId = parseInt(this.getAttribute('data-file-id'));
+    selectFile(fileId);
+  });
+  
+  // Update section counts
+  updateSectionCounts();
+}
+
+// Function to update section counts
+function updateSectionCounts() {
+  const unprocessedCount = document.querySelectorAll('#unprocessed-file-list .file-item').length;
+  const processedCount = document.querySelectorAll('#processed-file-list .file-item').length;
+  
+  document.querySelectorAll('.section-count').forEach(count => {
+    const section = count.closest('.section-header');
+    if (section.querySelector('.section-title').textContent.includes('Unprocessed')) {
+      count.textContent = `(${unprocessedCount})`;
+    } else if (section.querySelector('.section-title').textContent.includes('Processed')) {
+      count.textContent = `(${processedCount})`;
+    }
+  });
+  
+  // Update total file count
+  const totalCount = unprocessedCount + processedCount;
+  document.querySelector('.file-count').textContent = `${totalCount} files`;
+}
+
+// Navigation buttons
+document.getElementById('prev-btn').addEventListener('click', function() {
+  if (selectedFileId) {
+    const currentIndex = files.findIndex(f => f.id === selectedFileId);
+    if (currentIndex > 0) {
+      selectFile(files[currentIndex - 1].id);
+    }
+  }
+});
+
+document.getElementById('next-btn').addEventListener('click', function() {
+  if (selectedFileId) {
+    const currentIndex = files.findIndex(f => f.id === selectedFileId);
+    if (currentIndex < files.length - 1) {
+      selectFile(files[currentIndex + 1].id);
+    }
+  }
+});
+
+// Show message function
+function showMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message message-${type}`;
+  messageDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 12px; border-radius: 4px; min-width: 300px;';
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    messageDiv.style.opacity = '0';
+    setTimeout(() => messageDiv.remove(), 300);
+  }, 3000);
+}
+
+// Autocomplete functionality
+let autocompleteTimeout = null;
+
+function setupAutocomplete(inputId, suggestionsId, apiUrl) {
+  const input = document.getElementById(inputId);
+  const suggestions = document.getElementById(suggestionsId);
+  
+  input.addEventListener('input', function(e) {
+    const query = e.target.value.trim();
+    
+    // Clear previous timeout
+    if (autocompleteTimeout) {
+      clearTimeout(autocompleteTimeout);
+    }
+    
+    // Hide suggestions if query is too short
+    if (query.length < 2) {
+      suggestions.style.display = 'none';
+      return;
+    }
+    
+    // Debounce the API call
+    autocompleteTimeout = setTimeout(() => {
+      fetch(`${apiUrl}?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+          displaySuggestions(suggestions, data.suggestions, input);
+        })
+        .catch(error => {
+          console.error('Autocomplete error:', error);
+        });
+    }, 300);
+  });
+  
+  // Hide suggestions when clicking outside
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+      suggestions.style.display = 'none';
+    }
+  });
+  
+  // Handle keyboard navigation
+  input.addEventListener('keydown', function(e) {
+    const visibleSuggestions = suggestions.querySelectorAll('.autocomplete-suggestion');
+    const activeSuggestion = suggestions.querySelector('.autocomplete-suggestion.active');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (activeSuggestion) {
+        activeSuggestion.classList.remove('active');
+        const next = activeSuggestion.nextElementSibling;
+        if (next) {
+          next.classList.add('active');
+        } else {
+          visibleSuggestions[0]?.classList.add('active');
+        }
+      } else {
+        visibleSuggestions[0]?.classList.add('active');
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (activeSuggestion) {
+        activeSuggestion.classList.remove('active');
+        const prev = activeSuggestion.previousElementSibling;
+        if (prev) {
+          prev.classList.add('active');
+        } else {
+          visibleSuggestions[visibleSuggestions.length - 1]?.classList.add('active');
+        }
+      } else {
+        visibleSuggestions[visibleSuggestions.length - 1]?.classList.add('active');
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeSuggestion) {
+        activeSuggestion.click();
+      }
+    } else if (e.key === 'Escape') {
+      suggestions.style.display = 'none';
+    }
+  });
+}
+
+function displaySuggestions(container, suggestions, input) {
+  container.innerHTML = '';
+  
+  if (suggestions.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  suggestions.forEach(suggestion => {
+    const div = document.createElement('div');
+    div.className = 'autocomplete-suggestion';
+    
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'suggestion-name';
+    nameDiv.textContent = suggestion.name;
+    
+    const detailsDiv = document.createElement('div');
+    detailsDiv.className = 'suggestion-details';
+    
+    if (suggestion.address) {
+      detailsDiv.textContent = suggestion.address;
+    } else if (suggestion.category) {
+      detailsDiv.textContent = suggestion.category;
+    }
+    
+    div.appendChild(nameDiv);
+    div.appendChild(detailsDiv);
+    
+    // Add aliases if they exist
+    if (suggestion.aliases && suggestion.aliases.length > 0) {
+      const aliasesDiv = document.createElement('div');
+      aliasesDiv.className = 'suggestion-aliases';
+      suggestion.aliases.forEach(alias => {
+        const span = document.createElement('span');
+        span.textContent = alias;
+        aliasesDiv.appendChild(span);
+      });
+      div.appendChild(aliasesDiv);
+    }
+    
+    div.addEventListener('click', function() {
+      input.value = suggestion.name;
+      container.style.display = 'none';
+      input.focus();
+    });
+    
+    div.addEventListener('mouseenter', function() {
+      container.querySelectorAll('.autocomplete-suggestion').forEach(s => s.classList.remove('active'));
+      div.classList.add('active');
+    });
+    
+    container.appendChild(div);
+  });
+  
+  container.style.display = 'block';
+}
+
+// Initialize autocomplete for project and vendor fields
+setupAutocomplete('project', 'project-suggestions', '/api/autocomplete/projects/');
+setupAutocomplete('vendor', 'vendor-suggestions', '/api/autocomplete/vendors/');
+
+// Date picker functionality
+function updateDateFromPicker() {
+  const datePicker = document.getElementById('date-picker');
+  const dateInput = document.getElementById('date');
+  
+  if (datePicker.value) {
+    const date = new Date(datePicker.value);
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    
+    dateInput.value = `${month}-${day}-${year}`;
+  }
+}
+
+// Sync text input with date picker
+document.getElementById('date').addEventListener('input', function() {
+  const dateInput = this.value.trim();
+  const datePicker = document.getElementById('date-picker');
+  
+  if (dateInput && dateInput.includes('-')) {
+    const parts = dateInput.split('-');
+    if (parts.length === 3) {
+      const month = parts[0].padStart(2, '0');
+      const day = parts[1].padStart(2, '0');
+      const year = '20' + parts[2].padStart(2, '0'); // Convert YY to YYYY
+      
+      // Validate and set date picker
+      if (month.length === 2 && day.length === 2 && parts[2].length === 2) {
+        const fullDate = `${year}-${month}-${day}`;
+        datePicker.value = fullDate;
+      }
+    }
+  }
+});
+
+// Default invoice number functionality
+document.getElementById('default-invoice-btn').addEventListener('click', function() {
+  const dateInput = document.getElementById('date').value.trim();
+  const datePicker = document.getElementById('date-picker').value;
+  const invoiceInput = document.getElementById('invoice-number');
+  
+  let invoiceNumber = '';
+  
+  try {
+    // First try the date picker (YYYY-MM-DD format)
+    if (datePicker) {
+      const date = new Date(datePicker);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const year = String(date.getFullYear()).slice(-2);
+      invoiceNumber = year + month + day; // YYMMDD format
+    }
+    // Then try the text input (MM-DD-YY format)
+    else if (dateInput) {
+      // Handle MM-DD-YY format
+      if (dateInput.includes('-')) {
+        const parts = dateInput.split('-');
+        if (parts.length === 3) {
+          const month = parts[0].padStart(2, '0');
+          const day = parts[1].padStart(2, '0');
+          const year = parts[2].padStart(2, '0');
+          
+          // Validate the parts
+          if (month.length === 2 && day.length === 2 && year.length === 2) {
+            invoiceNumber = year + month + day; // YYMMDD format
+          }
+        }
+      }
+      // Handle MM/DD/YY format
+      else if (dateInput.includes('/')) {
+        const parts = dateInput.split('/');
+        if (parts.length === 3) {
+          const month = parts[0].padStart(2, '0');
+          const day = parts[1].padStart(2, '0');
+          const year = parts[2].padStart(2, '0');
+          
+          if (month.length === 2 && day.length === 2 && year.length === 2) {
+            invoiceNumber = year + month + day;
+          }
+        }
+      }
+    }
+    
+    if (invoiceNumber) {
+      invoiceInput.value = invoiceNumber;
+      showMessage(`Invoice number set to ${invoiceNumber}`, 'success');
+    } else {
+      showMessage('Please enter a date first using the date picker or MM-DD-YY format', 'error');
+    }
+    
+  } catch (error) {
+    showMessage('Invalid date format. Please use the date picker or MM-DD-YY format', 'error');
+  }
+});
+
+// Add click event listeners to file items
+document.addEventListener('DOMContentLoaded', function() {
+  // Add event listeners to both unprocessed and processed file items
+  document.querySelectorAll('#unprocessed-file-list .file-item, #processed-file-list .file-item').forEach(item => {
+    item.addEventListener('click', function() {
+      const fileId = parseInt(this.getAttribute('data-file-id'));
+      selectFile(fileId);
+    });
+  });
+});
+
+// Auto-hide messages after 5 seconds
+setTimeout(() => {
+  document.querySelectorAll('.message').forEach(msg => {
+    msg.style.opacity = '0';
+    setTimeout(() => msg.remove(), 300);
+  });
+}, 5000);
+</script>
+{% endblock %}

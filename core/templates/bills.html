@@ -1,0 +1,1174 @@
+{% extends "base.html" %}
+
+{% block title %}Bills{% endblock %}
+
+{% block extra_css %}
+<style>
+.bills-layout {
+  display: flex;
+  height: calc(100vh - 48px); /* Full height minus main padding */
+  gap: 1px;
+  background: #e5e7eb;
+}
+
+.panel {
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+
+.left-panel {
+  width: 25%;
+  min-width: 300px;
+}
+
+.middle-panel {
+  width: 50%;
+  flex: 1;
+}
+
+.right-panel {
+  width: 25%;
+  min-width: 280px;
+}
+
+.panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.search-box {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 4px;
+}
+
+.file-item:hover {
+  background: #f3f4f6;
+}
+
+.file-item.selected {
+  background: #dbeafe;
+  border: 1px solid #3b82f6;
+}
+
+.file-icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+.file-meta {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.file-details {
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 2px;
+}
+
+.preview-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6b7280;
+}
+
+.preview-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+  color: #374151;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #4b5563;
+}
+
+.btn-success {
+  background: #059669;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #047857;
+}
+
+.btn-warning {
+  background: #d97706;
+  color: white;
+}
+
+.btn-warning:hover {
+  background: #b45309;
+}
+
+.btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  background: #d1d5db;
+  color: #9ca3af;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-warning:hover {
+  background: #d97706;
+}
+
+.transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.transaction-item:hover {
+  background: #f9fafb;
+  border-color: #3b82f6;
+}
+
+.transaction-item.selected {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+.transaction-item.matched {
+  background: #f0fdf4;
+  border-color: #22c55e;
+  opacity: 0.8;
+}
+
+.transaction-item.matched:hover {
+  background: #dcfce7;
+  border-color: #16a34a;
+}
+
+.transaction-info {
+  flex: 1;
+}
+
+.transaction-date {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.transaction-description {
+  font-weight: 500;
+  color: #1f2937;
+  font-size: 14px;
+  margin: 2px 0;
+}
+
+.transaction-amount {
+  font-weight: 600;
+  color: #059669;
+  font-size: 14px;
+}
+
+.bill-info {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.bill-info h4 {
+  margin: 0 0 8px 0;
+  color: #374151;
+  font-size: 14px;
+}
+
+.bill-info-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 6px 0;
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.bill-info-item:last-child {
+  border-bottom: none;
+}
+
+.bill-info-label {
+  font-weight: 500;
+  color: #374151;
+  font-size: 13px;
+  min-width: 80px;
+}
+
+.bill-info-value {
+  font-size: 13px;
+  color: #6b7280;
+  flex: 1;
+  margin-left: 12px;
+  font-family: monospace;
+}
+
+.bill-info-value.class-value {
+  font-family: inherit;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.copy-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.copy-btn.copied {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.bill-number {
+  background: #dbeafe;
+  border: 1px solid #3b82f6;
+  border-radius: 4px;
+  padding: 8px;
+  font-family: monospace;
+  font-weight: 600;
+  color: #1e40af;
+  text-align: center;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.bill-number:hover {
+  background: #bfdbfe;
+  border-color: #2563eb;
+}
+
+.bill-number.copied {
+  background: #d1fae5;
+  border-color: #059669;
+  color: #047857;
+}
+
+.payment-method {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.payment-method button {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.payment-method button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+.payment-method button.disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.payment-method button.disabled:hover {
+  background: #f3f4f6;
+  color: #9ca3af;
+  border-color: #e5e7eb;
+}
+
+.payment-method button:hover:not(.disabled) {
+  border-color: #3b82f6;
+}
+
+.no-transactions {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+  font-style: italic;
+}
+
+.loading {
+  text-align: center;
+  color: #6b7280;
+  padding: 20px;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="bills-layout">
+  <!-- Left Panel: File List -->
+  <div class="panel left-panel">
+    <div class="panel-header">
+      <span>📄</span>
+      <span>Bills</span>
+    </div>
+    <div class="panel-content">
+      <!-- Search -->
+      <input type="text" class="search-box" placeholder="Search bills..." id="search-input">
+
+      <!-- File Count -->
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; color: #6b7280;">
+        <span>{{ files|length }} bills ready</span>
+        <button onclick="location.reload()" style="background: none; border: none; cursor: pointer; padding: 4px;">🔄</button>
+      </div>
+
+      <!-- File List -->
+      <div id="file-list">
+        {% for file in files %}
+          <div class="file-item" data-file-id="{{ file.id }}">
+            <div class="file-icon">
+              {% if file.file_type == '.pdf' %}📄
+              {% elif file.file_type == '.doc' or file.file_type == '.docx' %}📝
+              {% elif file.file_type == '.jpg' or file.file_type == '.jpeg' or file.file_type == '.png' %}🖼️
+              {% elif file.file_type == '.zip' or file.file_type == '.rar' %}📦
+              {% else %}📁{% endif %}
+            </div>
+            <div class="file-info">
+              <div class="file-name">{{ file.name }}</div>
+              <div class="file-meta">{{ file.file_size_display }} • {{ file.uploaded_at|date:"M d, Y" }}</div>
+              <div class="file-details">{{ file.vendor }} • {{ file.total }}{% if file.is_paid %} • ✅ Paid{% endif %}</div>
+            </div>
+          </div>
+        {% empty %}
+          <div style="text-align: center; color: #6b7280; padding: 40px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📄</div>
+            <div>No bills ready for processing</div>
+            <div style="font-size: 12px; margin-top: 8px;">Files need project, vendor, invoice number, and total to appear here</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Middle Panel: PDF Preview -->
+  <div class="panel middle-panel">
+    <div class="panel-header">
+      <span>👁️</span>
+      <span id="preview-title">NO FILE SELECTED</span>
+    </div>
+    <div class="panel-content">
+      <div class="preview-area" id="preview-area">
+        <div class="preview-icon">🖼️</div>
+        <div>Select a bill to preview</div>
+      </div>
+      <div id="pdf-preview" style="display: none; width: 100%; height: 100%;">
+        <iframe id="pdf-iframe" style="width: 100%; height: 100%; border: none;" src="about:blank" onerror="console.error('Iframe load error')"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel: Bill Entry Tool -->
+  <div class="panel right-panel">
+    <div class="panel-header">
+      <span>💰</span>
+      <span>Bill Entry Tool</span>
+    </div>
+    <div class="panel-content">
+      <div id="bill-entry-content">
+        <div style="text-align: center; color: #6b7280; padding: 40px 20px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+          <div>Select a bill to process</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Messages -->
+{% if messages %}
+  <div style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+    {% for message in messages %}
+      <div class="message message-{{ message.tags }}" style="padding: 12px; border-radius: 4px; margin-bottom: 8px; min-width: 300px;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<script>
+let selectedFileId = null;
+let selectedTransactionId = null;
+let files = JSON.parse('{{ files_json|escapejs }}');
+
+function selectFile(fileId) {
+  // Remove previous selection
+  document.querySelectorAll('.file-item').forEach(item => {
+    item.classList.remove('selected');
+  });
+  
+  // Add selection to clicked item
+  document.querySelector(`[data-file-id="${fileId}"]`).classList.add('selected');
+  
+  selectedFileId = fileId;
+  selectedTransactionId = null; // Reset selected transaction when switching files
+  const file = files.find(f => f.id === fileId);
+  
+  if (file) {
+    // Update preview title
+    document.getElementById('preview-title').textContent = file.name;
+    
+    // Show preview based on file type
+    if (file.file_type === '.pdf') {
+      // Show PDF preview
+      document.getElementById('preview-area').style.display = 'none';
+      document.getElementById('pdf-preview').style.display = 'block';
+      const pdfUrl = `/files/preview/${file.id}/`;
+      document.getElementById('pdf-iframe').src = pdfUrl;
+    } else if (file.file_type === '.jpg' || file.file_type === '.jpeg' || file.file_type === '.png' || file.file_type === '.gif' || file.file_type === '.webp') {
+      // Show image preview
+      document.getElementById('preview-area').style.display = 'flex';
+      document.getElementById('pdf-preview').style.display = 'none';
+      document.querySelector('.preview-icon').textContent = '';
+      document.querySelector('.preview-area div:last-child').innerHTML = `<img src="/files/preview/${file.id}/" alt="${file.name}" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px;">`;
+    } else {
+      // Show generic preview
+      document.getElementById('preview-area').style.display = 'flex';
+      document.getElementById('pdf-preview').style.display = 'none';
+      document.querySelector('.preview-icon').textContent = '📄';
+      document.querySelector('.preview-area div:last-child').textContent = 'Preview not available for this file type';
+    }
+    
+    // Load bill entry tool
+    loadBillEntryTool(file);
+  }
+}
+
+function loadBillEntryTool(file) {
+  const content = document.getElementById('bill-entry-content');
+  
+  // Generate bill number
+  const billNumber = generateBillNumber(file.invoice_number, file.project);
+  
+  content.innerHTML = `
+    <div class="bill-info">
+      <h4>Bill Information</h4>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Vendor:</span>
+        <span class="bill-info-value">${file.vendor}</span>
+        <button class="copy-btn" onclick="copyToClipboard('${file.vendor}', event)" title="Copy vendor">📋</button>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Date:</span>
+        <span class="bill-info-value">${file.date || 'N/A'}</span>
+        <button class="copy-btn" onclick="copyToClipboard('${file.date || 'N/A'}', event)" title="Copy date">📋</button>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Bill:</span>
+        <span class="bill-info-value">${file.invoice_number}</span>
+        <button class="copy-btn" onclick="copyToClipboard('${file.invoice_number}', event)" title="Copy invoice number">📋</button>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Amount:</span>
+        <span class="bill-info-value">${file.total}</span>
+        <button class="copy-btn" onclick="copyToClipboard('${file.total}', event)" title="Copy amount">📋</button>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Cardholder:</span>
+        <span class="bill-info-value" id="cardholder-value">${file.attached_transaction ? file.attached_transaction.card_holder : 'Not selected'}</span>
+        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('cardholder-value').textContent, event)" title="Copy cardholder">📋</button>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Description:</span>
+        <span class="bill-info-value" id="description-value">${file.attached_transaction ? file.attached_transaction.description : 'Not selected'}</span>
+        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('description-value').textContent, event)" title="Copy description">📋</button>
+      </div>
+      <div class="bill-info-item">
+        <span class="bill-info-label">Class:</span>
+        <span class="bill-info-value class-value" id="class-value" style="${file.selected_class ? `background-color: ${file.selected_class.color}20; color: ${file.selected_class.color}; border: 1px solid ${file.selected_class.color}40;` : ''}">${file.selected_class ? file.selected_class.name : 'Not assigned'}</span>
+        <button class="copy-btn" onclick="copyToClipboard(document.getElementById('class-value').textContent, event)" title="Copy class">📋</button>
+      </div>
+    </div>
+    
+    <div class="bill-number" onclick="copyToClipboard('${billNumber}', event)" title="Click to copy bill number">
+      ${billNumber}
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label">Payment Method</label>
+      <div class="payment-method">
+        <button type="button" class="payment-btn ${file.attached_transaction ? 'disabled' : 'active'}" data-method="check" ${file.attached_transaction ? 'disabled' : ''}>Cut Check</button>
+        <button type="button" class="payment-btn ${file.attached_transaction ? 'active' : ''}" data-method="credit_card">Credit Card</button>
+      </div>
+    </div>
+    
+    <div class="form-group" id="transactions-section">
+      <label class="form-label">Matching Transactions</label>
+      <div id="transactions-list">
+        <div class="loading">Loading matching transactions...</div>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 8px;">
+      <button type="button" class="btn btn-success" id="mark-paid-btn">
+        <span>💳</span>
+        <span>Mark as Paid</span>
+      </button>
+    </div>
+  `;
+  
+  // Add event listeners
+  setupBillEntryEventListeners();
+  
+  // Set selected transaction if file has attached transaction
+  if (file.attached_transaction) {
+    selectedTransactionId = file.attached_transaction.id;
+  }
+  
+  // Initialize payment method based on attached transaction
+  const initialPaymentMethod = file.attached_transaction ? 'credit_card' : 'check';
+  handlePaymentMethodChange(initialPaymentMethod);
+  
+  // Load matching transactions only if in credit card mode
+  if (initialPaymentMethod === 'credit_card') {
+    loadMatchingTransactions(file.id);
+  }
+}
+
+function setupBillEntryEventListeners() {
+  // Payment method buttons
+  document.querySelectorAll('.payment-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      // Don't allow clicking on disabled buttons
+      if (this.disabled || this.classList.contains('disabled')) {
+        return;
+      }
+      
+      document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Handle payment method change
+      const paymentMethod = this.getAttribute('data-method');
+      handlePaymentMethodChange(paymentMethod);
+    });
+  });
+  
+  // Mark as paid button
+  const markPaidBtn = document.getElementById('mark-paid-btn');
+  if (markPaidBtn) {
+    markPaidBtn.addEventListener('click', markBillAsPaid);
+  }
+}
+
+function loadMatchingTransactions(fileId) {
+  fetch('{% url "get_matching_transactions" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({ file_id: fileId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Load matching transactions response:', data);
+    const transactionsList = document.getElementById('transactions-list');
+    
+    if (data.success) {
+      if (data.transactions.length > 0) {
+        transactionsList.innerHTML = data.transactions.map(transaction => {
+          const isMatched = transaction.status === 'MATCHED';
+          const isCurrentFile = transaction.attached_file && transaction.attached_file.id == selectedFileId;
+          
+          let statusIndicator = '';
+          let buttonHtml = '';
+          
+          if (isMatched) {
+            if (isCurrentFile) {
+              statusIndicator = '<div style="font-size: 11px; color: #059669; margin-top: 2px; font-weight: 500;">✅ Matched to this file</div>';
+              buttonHtml = `<button class="btn btn-warning" style="font-size: 12px; padding: 4px 8px;" onclick="unmatchTransaction(${transaction.id})" title="Unmatch this transaction">Unmatch</button>`;
+            } else {
+              statusIndicator = `<div style="font-size: 11px; color: #dc2626; margin-top: 2px; font-weight: 500;">🔗 Matched to: ${transaction.attached_file.name}</div>`;
+              buttonHtml = '<button class="btn btn-secondary" style="font-size: 12px; padding: 4px 8px;" disabled>Already Matched</button>';
+            }
+          } else {
+            buttonHtml = `<button class="btn btn-primary" style="font-size: 12px; padding: 4px 8px;" onclick="attachTransaction(${transaction.id}, '${transaction.card_holder}', '${transaction.description}')">Attach</button>`;
+          }
+          
+          return `
+          <div class="transaction-item ${isMatched ? 'matched' : ''}" data-transaction-id="${transaction.id}">
+            <div class="transaction-info">
+              <div class="transaction-date">${transaction.date}</div>
+              <div class="transaction-description">${transaction.description}</div>
+              <div class="transaction-amount">${transaction.amount}</div>
+              <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
+                ${transaction.user_name ? `<strong style="color: #059669;">👤 ${transaction.user_name}</strong>` : `Cardholder: ${transaction.card_holder}`}
+              </div>
+              ${statusIndicator}
+            </div>
+            ${buttonHtml}
+          </div>
+          `;
+        }).join('');
+        
+        // Add click listeners to transactions
+        document.querySelectorAll('.transaction-item').forEach(item => {
+          item.addEventListener('click', function() {
+            document.querySelectorAll('.transaction-item').forEach(t => t.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedTransactionId = parseInt(this.getAttribute('data-transaction-id'));
+            
+            // Update cardholder and description fields
+            const transaction = data.transactions.find(t => t.id === selectedTransactionId);
+            if (transaction) {
+              document.getElementById('cardholder-value').textContent = transaction.card_holder;
+              document.getElementById('description-value').textContent = transaction.description;
+              
+              // Show mark as paid button
+              document.getElementById('mark-paid-btn').style.display = 'inline-flex';
+            }
+          });
+        });
+      } else {
+        transactionsList.innerHTML = `
+          <div class="no-transactions">
+            No matching transactions found for ${data.file_amount}
+          </div>
+        `;
+      }
+    } else {
+      transactionsList.innerHTML = `
+        <div class="no-transactions">
+          Error loading transactions: ${data.message}
+        </div>
+      `;
+    }
+  })
+  .catch(error => {
+    document.getElementById('transactions-list').innerHTML = `
+      <div class="no-transactions">
+        Error loading transactions
+      </div>
+    `;
+  });
+}
+
+function createBill() {
+  if (!selectedFileId) {
+    showMessage('Please select a file first', 'error');
+    return;
+  }
+  
+  const paymentMethod = document.querySelector('.payment-btn.active').getAttribute('data-method');
+  
+  const requestData = {
+    file_id: selectedFileId,
+    payment_method: paymentMethod
+  };
+  
+  if (selectedTransactionId) {
+    requestData.transaction_id = selectedTransactionId;
+  }
+  
+  fetch('{% url "create_bill" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(requestData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage(data.message, 'success');
+      
+      // Clear selection and reset
+      selectedFileId = null;
+      selectedTransactionId = null;
+      document.querySelectorAll('.file-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Reset preview
+      document.getElementById('preview-title').textContent = 'NO FILE SELECTED';
+      document.getElementById('preview-area').style.display = 'flex';
+      document.getElementById('pdf-preview').style.display = 'none';
+      document.querySelector('.preview-icon').textContent = '🖼️';
+      document.querySelector('.preview-area div:last-child').textContent = 'Select a bill to preview';
+      
+      // Reset bill entry tool
+      document.getElementById('bill-entry-content').innerHTML = `
+        <div style="text-align: center; color: #6b7280; padding: 40px 20px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+          <div>Select a bill to process</div>
+        </div>
+      `;
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    showMessage('Error creating bill', 'error');
+  });
+}
+
+function generateBillNumber(invoiceNumber, projectName) {
+  // Clean address - remove directional indicators (N, S, E, W, NE, NW, SE, SW)
+  const words = projectName.split(' ');
+  const cleanedWords = [];
+  
+  for (const word of words) {
+    // Remove common directional indicators (case insensitive)
+    const upperWord = word.toUpperCase();
+    if (!['N', 'S', 'E', 'W', 'NE', 'NW', 'SE', 'SW', 'NORTH', 'SOUTH', 'EAST', 'WEST', 'NORTHEAST', 'NORTHWEST', 'SOUTHEAST', 'SOUTHWEST'].includes(upperWord)) {
+      cleanedWords.push(word);
+    }
+  }
+  
+  // Join the cleaned words
+  const cleanedAddress = cleanedWords.join(' ');
+  
+  // Clean up extra spaces
+  const finalAddress = cleanedAddress.replace(/\s+/g, ' ').trim();
+  
+  // Create bill number: invoice_number - address
+  return `${invoiceNumber} - ${finalAddress}`;
+}
+
+function copyToClipboard(text, event) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Find the element that was clicked and show feedback
+    const target = event.target;
+    
+    if (target.classList.contains('copy-btn')) {
+      // Handle copy buttons
+      target.classList.add('copied');
+      target.textContent = '✓';
+      
+      setTimeout(() => {
+        target.classList.remove('copied');
+        target.textContent = '📋';
+      }, 2000);
+    } else if (target.classList.contains('bill-number')) {
+      // Handle bill number div
+      target.classList.add('copied');
+      const originalText = target.textContent;
+      target.textContent = '✓ Copied!';
+      
+      setTimeout(() => {
+        target.classList.remove('copied');
+        target.textContent = originalText;
+      }, 2000);
+    }
+    
+    showMessage(`Copied: ${text}`, 'success');
+  }).catch(err => {
+    console.error('Failed to copy: ', err);
+    showMessage('Failed to copy to clipboard', 'error');
+  });
+}
+
+function handlePaymentMethodChange(paymentMethod) {
+  const transactionsSection = document.getElementById('transactions-section');
+  const markPaidBtn = document.getElementById('mark-paid-btn');
+  const cutCheckBtn = document.querySelector('.payment-btn[data-method="check"]');
+  const creditCardBtn = document.querySelector('.payment-btn[data-method="credit_card"]');
+  
+  // Update button states
+  if (cutCheckBtn && creditCardBtn) {
+    cutCheckBtn.classList.remove('active');
+    creditCardBtn.classList.remove('active');
+    
+    if (paymentMethod === 'check') {
+      cutCheckBtn.classList.add('active');
+      cutCheckBtn.classList.remove('disabled');
+      cutCheckBtn.disabled = false;
+    } else if (paymentMethod === 'credit_card') {
+      creditCardBtn.classList.add('active');
+      creditCardBtn.classList.remove('disabled');
+      creditCardBtn.disabled = false;
+    }
+  }
+  
+  if (paymentMethod === 'check') {
+    // Hide transactions section for Cut Check mode
+    transactionsSection.style.display = 'none';
+    
+    // Enable Mark as Paid button for check payments
+    markPaidBtn.disabled = false;
+    
+    // Clear any selected transaction
+    selectedTransactionId = null;
+    document.getElementById('cardholder-value').textContent = 'Not selected';
+    document.getElementById('description-value').textContent = 'Not selected';
+    
+  } else if (paymentMethod === 'credit_card') {
+    // Show transactions section for Credit Card mode
+    transactionsSection.style.display = 'block';
+    
+    // Disable Mark as Paid button until transaction is attached
+    markPaidBtn.disabled = !selectedTransactionId;
+    
+    // Load matching transactions to ensure we have the latest status
+    if (selectedFileId) {
+      loadMatchingTransactions(selectedFileId);
+    }
+  }
+}
+
+function unmatchTransaction(transactionId) {
+  if (!selectedFileId) {
+    showMessage('Please select a file first', 'error');
+    return;
+  }
+  
+  // Show confirmation dialog
+  if (!confirm('Are you sure you want to unmatch this transaction? This will remove the connection between the transaction and the file.')) {
+    return;
+  }
+  
+  fetch('{% url "unmatch_transaction" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      file_id: selectedFileId,
+      transaction_id: transactionId
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage(data.message, 'success');
+      
+      // Update file object in memory
+      const file = files.find(f => f.id === selectedFileId);
+      if (file) {
+        file.attached_transaction = null;
+      }
+      
+      // Clear cardholder and description fields
+      document.getElementById('cardholder-value').textContent = 'Not selected';
+      document.getElementById('description-value').textContent = 'Not selected';
+      selectedTransactionId = null;
+      
+      // Update payment method to check since transaction is now unmatched
+      handlePaymentMethodChange('check');
+      
+      // Reload matching transactions to show updated status
+      loadMatchingTransactions(selectedFileId);
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    showMessage('Error unmatching transaction', 'error');
+  });
+}
+
+function attachTransaction(transactionId, cardholder, description) {
+  // Stop event propagation to prevent transaction item click
+  event.stopPropagation();
+  
+  selectedTransactionId = transactionId;
+  
+  // Update cardholder and description fields
+  document.getElementById('cardholder-value').textContent = cardholder;
+  document.getElementById('description-value').textContent = description;
+  
+  // Enable Mark as Paid button for credit card payments
+  const markPaidBtn = document.getElementById('mark-paid-btn');
+  const paymentMethod = document.querySelector('.payment-btn.active').getAttribute('data-method');
+  if (paymentMethod === 'credit_card') {
+    markPaidBtn.disabled = false;
+  }
+  
+  // Update visual selection
+  document.querySelectorAll('.transaction-item').forEach(t => t.classList.remove('selected'));
+  document.querySelector(`[data-transaction-id="${transactionId}"]`).classList.add('selected');
+  
+  // Save attachment to database
+  fetch('{% url "create_bill" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      file_id: selectedFileId,
+      transaction_id: transactionId,
+      payment_method: 'credit_card',
+      mark_as_paid: false
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Attach transaction response:', data);
+    if (data.success) {
+      showMessage(`Transaction attached: ${cardholder}`, 'success');
+      // Update the file object in memory
+      const file = files.find(f => f.id === selectedFileId);
+      if (file) {
+        file.attached_transaction = {
+          id: transactionId,
+          card_holder: cardholder,
+          description: description
+        };
+      }
+      
+      // Update payment method to credit card since transaction is now attached
+      handlePaymentMethodChange('credit_card');
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    showMessage('Error attaching transaction', 'error');
+  });
+}
+
+function markBillAsPaid() {
+  if (!selectedFileId) {
+    showMessage('Please select a file first', 'error');
+    return;
+  }
+  
+  const paymentMethod = document.querySelector('.payment-btn.active').getAttribute('data-method');
+  
+  // For credit card payments, require transaction selection
+  if (paymentMethod === 'credit_card' && !selectedTransactionId) {
+    showMessage('Please attach a transaction first', 'error');
+    return;
+  }
+  
+  const requestData = {
+    file_id: selectedFileId,
+    payment_method: paymentMethod,
+    mark_as_paid: true
+  };
+  
+  // Add transaction_id only if one is selected
+  if (selectedTransactionId) {
+    requestData.transaction_id = selectedTransactionId;
+  }
+  
+  fetch('{% url "create_bill" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(requestData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage('Bill marked as paid!', 'success');
+      
+      // Clear selection and reset
+      selectedFileId = null;
+      selectedTransactionId = null;
+      document.querySelectorAll('.file-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Reset preview
+      document.getElementById('preview-title').textContent = 'NO FILE SELECTED';
+      document.getElementById('preview-area').style.display = 'flex';
+      document.getElementById('pdf-preview').style.display = 'none';
+      document.querySelector('.preview-icon').textContent = '🖼️';
+      document.querySelector('.preview-area div:last-child').textContent = 'Select a bill to preview';
+      
+      // Reset bill entry tool
+      document.getElementById('bill-entry-content').innerHTML = `
+        <div style="text-align: center; color: #6b7280; padding: 40px 20px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+          <div>Select a bill to process</div>
+        </div>
+      `;
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    showMessage('Error marking bill as paid', 'error');
+  });
+}
+
+// Search functionality
+document.getElementById('search-input').addEventListener('input', function(e) {
+  const searchTerm = e.target.value.toLowerCase();
+  document.querySelectorAll('.file-item').forEach(item => {
+    const fileName = item.querySelector('.file-name').textContent.toLowerCase();
+    const vendor = item.querySelector('.file-details').textContent.toLowerCase();
+    if (fileName.includes(searchTerm) || vendor.includes(searchTerm)) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+});
+
+// Show message function
+function showMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message message-${type}`;
+  messageDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 1000; padding: 12px; border-radius: 4px; min-width: 300px;';
+  messageDiv.textContent = message;
+  
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    messageDiv.style.opacity = '0';
+    setTimeout(() => messageDiv.remove(), 300);
+  }, 3000);
+}
+
+// Add click event listeners to file items
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.file-item').forEach(item => {
+    item.addEventListener('click', function() {
+      const fileId = parseInt(this.getAttribute('data-file-id'));
+      selectFile(fileId);
+    });
+  });
+});
+
+// Auto-hide messages after 5 seconds
+setTimeout(() => {
+  document.querySelectorAll('.message').forEach(msg => {
+    msg.style.opacity = '0';
+    setTimeout(() => msg.remove(), 300);
+  });
+}, 5000);
+</script>
+{% endblock %}

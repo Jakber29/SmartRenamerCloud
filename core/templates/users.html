@@ -1,0 +1,1676 @@
+{% extends "base.html" %}
+
+{% block title %}Users{% endblock %}
+
+{% block extra_css %}
+<style>
+.users-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.page-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.page-subtitle {
+  margin: 4px 0 0 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.add-user-btn {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.add-user-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Search and Filter Section */
+.search-section {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.search-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.search-icon {
+  color: #6b7280;
+  font-size: 20px;
+}
+
+.search-title {
+  margin: 0;
+  color: #374151;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.search-controls {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.search-input {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: all 0.2s;
+  background: #f9fafb;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.filter-select {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.clear-btn {
+  padding: 12px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover {
+  background: #e5e7eb;
+  border-color: #d1d5db;
+}
+
+/* View Controls */
+.view-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+
+.view-toggle {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 4px;
+  gap: 4px;
+}
+
+.view-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.view-btn.active {
+  background: white;
+  color: #374151;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.view-btn:hover:not(.active) {
+  color: #374151;
+}
+
+/* Users List View */
+.users-list {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.list-header {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr 1.5fr;
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 20px;
+  font-weight: 600;
+  color: #374151;
+  font-size: 14px;
+}
+
+.list-body {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.list-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr 1.5fr;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.2s;
+  align-items: center;
+}
+
+.list-row:hover {
+  background: #f8fafc;
+}
+
+.list-row:last-child {
+  border-bottom: none;
+}
+
+.list-cell {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+}
+
+.user-info {
+  gap: 12px;
+}
+
+.user-avatar-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-details-small {
+  min-width: 0;
+}
+
+.user-details-small .user-name {
+  margin: 0 0 2px 0;
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-details-small .user-username {
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.role-badges-small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.role-badge-small {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-badge.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.last-login {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.action-buttons-small {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-small {
+  padding: 6px 8px;
+  font-size: 12px;
+  min-width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Users Grid */
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.user-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 24px;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
+}
+
+.user-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.user-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-name {
+  margin: 0 0 4px 0;
+  color: #1f2937;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-username {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.user-status {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.user-status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.user-status.inactive {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.user-details {
+  margin-bottom: 20px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.detail-value {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Role Badges */
+.role-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.role-admin {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.role-accounting {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.role-superintendent {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.role-project-manager {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.role-designer {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-warning:hover {
+  background: #d97706;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  padding: 24px 24px 0 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-title {
+  margin: 0;
+  color: #1f2937;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-actions {
+  padding: 0 24px 24px 24px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.modal-btn-primary:hover {
+  background: #2563eb;
+}
+
+.modal-btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.modal-btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+/* Form Elements */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #374151;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.form-help {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Role Assignment Interface */
+.role-assignment {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.role-assignment-title {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.role-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.role-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.role-checkbox:hover {
+  background: #e2e8f0;
+}
+
+.role-checkbox input[type="checkbox"] {
+  margin: 0;
+}
+
+.role-checkbox-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6b7280;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state-title {
+  margin: 0 0 8px 0;
+  color: #374151;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.empty-state-subtitle {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Message System */
+.message {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  z-index: 1001;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.message.success {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.message.error {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .users-container {
+    padding: 16px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-controls {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .view-controls {
+    justify-content: center;
+  }
+  
+  /* List view mobile */
+  .list-header {
+    display: none; /* Hide header on mobile */
+  }
+  
+  .list-row {
+    display: block;
+    padding: 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .list-cell {
+    display: block;
+    margin-bottom: 8px;
+  }
+  
+  .list-cell:last-child {
+    margin-bottom: 0;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  
+  .action-buttons-small {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+  
+  /* Card view mobile */
+  .users-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .user-card {
+    padding: 20px;
+  }
+  
+  .action-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    margin: 10px;
+  }
+  
+  .role-checkboxes {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="users-container">
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Users</h1>
+      <p class="page-subtitle">Manage user accounts, roles, and permissions</p>
+    </div>
+    <button class="add-user-btn" onclick="showAddUserModal()">
+      <span>+</span>
+      <span>Add User</span>
+    </button>
+  </div>
+
+  <!-- Search and Filter Section -->
+  <div class="search-section">
+    <div class="search-header">
+      <span class="search-icon">🔍</span>
+      <h2 class="search-title">Search & Filter Users</h2>
+    </div>
+    <div class="search-controls">
+      <input type="text" id="user-search" class="search-input" placeholder="Search by name, username, or email..." onkeyup="filterUsers()">
+      <select id="role-filter" class="filter-select" onchange="filterUsers()">
+        <option value="">All Roles</option>
+        <option value="admin">Admin</option>
+        <option value="accounting">Accounting</option>
+        <option value="superintendent">Superintendent</option>
+        <option value="project-manager">Project Manager</option>
+        <option value="designer">Designer</option>
+      </select>
+      <select id="status-filter" class="filter-select" onchange="filterUsers()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- View Toggle -->
+  <div class="view-controls">
+    <div class="view-toggle">
+      <button class="view-btn active" id="list-view-btn" onclick="switchToListView()">
+        📋 List View
+      </button>
+      <button class="view-btn" id="card-view-btn" onclick="switchToCardView()">
+        🎴 Card View
+      </button>
+    </div>
+  </div>
+
+  <!-- Users List View -->
+  <div class="users-list" id="users-list">
+    <div class="list-header">
+      <div class="list-column">User</div>
+      <div class="list-column">Roles</div>
+      <div class="list-column">Status</div>
+      <div class="list-column">Last Login</div>
+      <div class="list-column">Actions</div>
+    </div>
+    <div class="list-body" id="list-body">
+      {% for profile in user_profiles %}
+        <div class="list-row" data-user-id="{{ profile.id }}" data-roles="{{ profile.groups.all|join:','|lower }}" data-status="{% if profile.is_active %}active{% else %}inactive{% endif %}">
+          <div class="list-cell user-info">
+            <div class="user-avatar-small">
+              {{ profile.first_name|first|default:profile.username|first|upper }}
+            </div>
+            <div class="user-details-small">
+              <div class="user-name">{{ profile.get_full_name|default:profile.username }}</div>
+              <div class="user-username">@{{ profile.username }}</div>
+            </div>
+          </div>
+          <div class="list-cell">
+            <div class="role-badges-small">
+              {% for group in profile.groups.all %}
+                <span class="role-badge-small role-{{ group.name|lower|slugify }}">{{ group.name }}</span>
+              {% empty %}
+                <span class="role-badge-small" style="background: #f3f4f6; color: #6b7280;">No Role</span>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="list-cell">
+            <span class="status-badge {% if profile.is_active %}active{% else %}inactive{% endif %}">
+              {% if profile.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+          </div>
+          <div class="list-cell">
+            <span class="last-login">{{ profile.last_login|date:"M d, Y"|default:"Never" }}</span>
+          </div>
+          <div class="list-cell">
+            <div class="action-buttons-small">
+              <button class="btn btn-primary btn-small" onclick="editUser({{ profile.id }})" title="Edit User">
+                ✏️
+              </button>
+              <button class="btn btn-secondary btn-small" onclick="changePassword({{ profile.id }}, '{{ profile.username|escapejs }}')" title="Change Password">
+                🔑
+              </button>
+              <button class="btn btn-secondary btn-small" onclick="impersonateUser({{ profile.id }}, '{{ profile.username|escapejs }}')" title="Impersonate">
+                🎭
+              </button>
+              {% if not profile.is_superuser %}
+                <button class="btn btn-warning btn-small" onclick="toggleUserStatus({{ profile.id }})" title="Toggle Status">
+                  {% if profile.is_active %}⏸️{% else %}▶️{% endif %}
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <div class="empty-state">
+          <div class="empty-state-icon">👥</div>
+          <h3 class="empty-state-title">No Users Found</h3>
+          <p class="empty-state-subtitle">Get started by adding your first user</p>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Users Grid (Card View) -->
+  <div class="users-grid" id="users-grid" style="display: none;">
+    {% for profile in user_profiles %}
+      <div class="user-card" data-user-id="{{ profile.id }}" data-roles="{{ profile.groups.all|join:','|lower }}" data-status="{% if profile.is_active %}active{% else %}inactive{% endif %}">
+        <div class="user-card-header">
+          <div class="user-avatar">
+            {{ profile.first_name|first|default:profile.username|first|upper }}
+          </div>
+          <div class="user-info">
+            <h3 class="user-name">{{ profile.get_full_name|default:profile.username }}</h3>
+            <p class="user-username">@{{ profile.username }}</p>
+          </div>
+          <div class="user-status {% if profile.is_active %}active{% else %}inactive{% endif %}">
+            {% if profile.is_active %}Active{% else %}Inactive{% endif %}
+          </div>
+        </div>
+
+        <div class="user-details">
+          <div class="detail-row">
+            <span class="detail-label">Email</span>
+            <span class="detail-value">{{ profile.email|default:"Not set" }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Card Number</span>
+            <span class="detail-value">{{ profile.card_number|default:"Not assigned" }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Last Login</span>
+            <span class="detail-value">{{ profile.last_login|date:"M d, Y"|default:"Never" }}</span>
+          </div>
+        </div>
+
+        <div class="role-badges">
+          {% for group in profile.groups.all %}
+            <span class="role-badge role-{{ group.name|lower|slugify }}">{{ group.name }}</span>
+          {% empty %}
+            <span class="role-badge" style="background: #f3f4f6; color: #6b7280;">No Role</span>
+          {% endfor %}
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn btn-primary" onclick="editUser({{ profile.id }})">
+            ✏️ Edit
+          </button>
+          <button class="btn btn-secondary" onclick="changePassword({{ profile.id }}, '{{ profile.username|escapejs }}')">
+            🔑 Password
+          </button>
+          <button class="btn btn-secondary" onclick="impersonateUser({{ profile.id }}, '{{ profile.username|escapejs }}')">
+            🎭 Impersonate
+          </button>
+          {% if not profile.is_superuser %}
+            <button class="btn btn-warning" onclick="toggleUserStatus({{ profile.id }})">
+              {% if profile.is_active %}⏸️ Deactivate{% else %}▶️ Activate{% endif %}
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    {% empty %}
+      <div class="empty-state">
+        <div class="empty-state-icon">👥</div>
+        <h3 class="empty-state-title">No Users Found</h3>
+        <p class="empty-state-subtitle">Get started by adding your first user</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="add-user-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New User</h2>
+      <button class="close-btn" onclick="hideAddUserModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="add-user-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label class="form-label" for="new-username">Username *</label>
+          <input type="text" class="form-input" id="new-username" name="username" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="new-email">Email</label>
+          <input type="email" class="form-input" id="new-email" name="email">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="new-first-name">First Name</label>
+          <input type="text" class="form-input" id="new-first-name" name="first_name">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="new-last-name">Last Name</label>
+          <input type="text" class="form-input" id="new-last-name" name="last_name">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="new-password">Password *</label>
+          <input type="password" class="form-input" id="new-password" name="password" required>
+          <small class="form-help">Minimum 8 characters</small>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="new-card-number">Card Number (Last 4 digits)</label>
+          <input type="text" class="form-input" id="new-card-number" name="card_number" maxlength="4" pattern="[0-9]{4}">
+          <small class="form-help">4-digit card number for transaction matching</small>
+        </div>
+        
+        <div class="role-assignment">
+          <h4 class="role-assignment-title">Assign Roles</h4>
+          <div class="role-checkboxes">
+            <label class="role-checkbox">
+              <input type="checkbox" name="roles" value="admin">
+              <span class="role-checkbox-label">Admin</span>
+            </label>
+            <label class="role-checkbox">
+              <input type="checkbox" name="roles" value="accounting">
+              <span class="role-checkbox-label">Accounting</span>
+            </label>
+            <label class="role-checkbox">
+              <input type="checkbox" name="roles" value="superintendent">
+              <span class="role-checkbox-label">Superintendent</span>
+            </label>
+            <label class="role-checkbox">
+              <input type="checkbox" name="roles" value="project-manager">
+              <span class="role-checkbox-label">Project Manager</span>
+            </label>
+            <label class="role-checkbox">
+              <input type="checkbox" name="roles" value="designer">
+              <span class="role-checkbox-label">Designer</span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-secondary" onclick="hideAddUserModal()">
+        Cancel
+      </button>
+      <button type="button" class="modal-btn modal-btn-primary" onclick="createUser()">
+        Create User
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="password-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Change Password</h2>
+      <button class="close-btn" onclick="closePasswordModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <p>Change password for user: <strong id="password-modal-username"></strong></p>
+      
+      <div class="form-group">
+        <label class="form-label" for="new-password">New Password *</label>
+        <input type="password" class="form-input" id="new-password" placeholder="Enter new password" required>
+        <small class="form-help">Password must be at least 8 characters long</small>
+      </div>
+      
+      <div class="form-group">
+        <label class="form-label" for="confirm-password">Confirm Password *</label>
+        <input type="password" class="form-input" id="confirm-password" placeholder="Confirm new password" required>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-secondary" onclick="closePasswordModal()">
+        Cancel
+      </button>
+      <button type="button" class="modal-btn modal-btn-primary" id="save-password-btn" onclick="saveNewPassword()">
+        Change Password
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="edit-user-modal" style="display: none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2 class="modal-title">Edit User</h2>
+      <button class="close-btn" onclick="hideEditUserModal()">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <form id="edit-user-form">
+        {% csrf_token %}
+        <input type="hidden" id="edit-user-id" name="user_id">
+        
+        <div class="form-group">
+          <label class="form-label" for="edit-username">Username *</label>
+          <input type="text" class="form-input" id="edit-username" name="username" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="edit-email">Email</label>
+          <input type="email" class="form-input" id="edit-email" name="email">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="edit-first-name">First Name</label>
+          <input type="text" class="form-input" id="edit-first-name" name="first_name">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="edit-last-name">Last Name</label>
+          <input type="text" class="form-input" id="edit-last-name" name="last_name">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label" for="edit-card-number">Card Number (Last 4 digits)</label>
+          <input type="text" class="form-input" id="edit-card-number" name="card_number" maxlength="4" pattern="[0-9]{4}">
+          <small class="form-help">4-digit card number for transaction matching</small>
+        </div>
+        
+        <div class="role-assignment">
+          <h4 class="role-assignment-title">Update Roles</h4>
+          <div class="role-checkboxes" id="edit-role-checkboxes">
+            <!-- Roles will be populated by JavaScript -->
+          </div>
+        </div>
+      </form>
+    </div>
+    
+    <div class="modal-actions">
+      <button type="button" class="modal-btn modal-btn-secondary" onclick="hideEditUserModal()">
+        Cancel
+      </button>
+      <button type="button" class="modal-btn modal-btn-primary" onclick="updateUser()">
+        Update User
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Global variables
+let users = [];
+let currentEditUserId = null;
+let currentPasswordUserId = null;
+
+// Initialize data
+document.addEventListener('DOMContentLoaded', function() {
+  // Parse users data from the page
+  const userCards = document.querySelectorAll('.user-card');
+  users = Array.from(userCards).map(card => ({
+    id: card.dataset.userId,
+    name: card.querySelector('.user-name').textContent,
+    username: card.querySelector('.user-username').textContent.replace('@', ''),
+    roles: card.dataset.roles.split(',').filter(r => r),
+    status: card.dataset.status
+  }));
+  
+  console.log('Users loaded:', users);
+  
+  // Restore view preference
+  const savedView = localStorage.getItem('users-view-preference');
+  if (savedView === 'cards') {
+    switchToCardView();
+  } else {
+    switchToListView(); // Default to list view
+  }
+});
+
+// View Toggle Functions
+function switchToListView() {
+  document.getElementById('list-view-btn').classList.add('active');
+  document.getElementById('card-view-btn').classList.remove('active');
+  document.getElementById('users-list').style.display = 'block';
+  document.getElementById('users-grid').style.display = 'none';
+  localStorage.setItem('users-view-preference', 'list');
+}
+
+function switchToCardView() {
+  document.getElementById('card-view-btn').classList.add('active');
+  document.getElementById('list-view-btn').classList.remove('active');
+  document.getElementById('users-list').style.display = 'none';
+  document.getElementById('users-grid').style.display = 'grid';
+  localStorage.setItem('users-view-preference', 'cards');
+}
+
+// Search and Filter Functions
+function filterUsers() {
+  const searchTerm = document.getElementById('user-search').value.toLowerCase();
+  const roleFilter = document.getElementById('role-filter').value;
+  const statusFilter = document.getElementById('status-filter').value;
+  
+  // Filter list view
+  const listRows = document.querySelectorAll('.list-row');
+  listRows.forEach(row => {
+    const userName = row.querySelector('.user-name').textContent.toLowerCase();
+    const userUsername = row.querySelector('.user-username').textContent.toLowerCase();
+    const userRoles = row.dataset.roles;
+    const userStatus = row.dataset.status;
+    
+    const matchesSearch = userName.includes(searchTerm) || userUsername.includes(searchTerm);
+    const matchesRole = !roleFilter || userRoles.includes(roleFilter);
+    const matchesStatus = !statusFilter || userStatus === statusFilter;
+    
+    if (matchesSearch && matchesRole && matchesStatus) {
+      row.style.display = 'grid';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+  
+  // Filter card view
+  const userCards = document.querySelectorAll('.user-card');
+  userCards.forEach(card => {
+    const userName = card.querySelector('.user-name').textContent.toLowerCase();
+    const userUsername = card.querySelector('.user-username').textContent.toLowerCase();
+    const userRoles = card.dataset.roles;
+    const userStatus = card.dataset.status;
+    
+    const matchesSearch = userName.includes(searchTerm) || userUsername.includes(searchTerm);
+    const matchesRole = !roleFilter || userRoles.includes(roleFilter);
+    const matchesStatus = !statusFilter || userStatus === statusFilter;
+    
+    if (matchesSearch && matchesRole && matchesStatus) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// Modal Functions
+function showAddUserModal() {
+  document.getElementById('add-user-modal').style.display = 'flex';
+  document.getElementById('add-user-form').reset();
+}
+
+function hideAddUserModal() {
+  document.getElementById('add-user-modal').style.display = 'none';
+}
+
+function showEditUserModal(userId) {
+  currentEditUserId = userId;
+  const userCard = document.querySelector(`[data-user-id="${userId}"]`);
+  const userName = userCard.querySelector('.user-name').textContent;
+  const userUsername = userCard.querySelector('.user-username').textContent.replace('@', '');
+  
+  // Populate form fields
+  document.getElementById('edit-user-id').value = userId;
+  document.getElementById('edit-username').value = userUsername;
+  document.getElementById('edit-first-name').value = userName.split(' ')[0] || '';
+  document.getElementById('edit-last-name').value = userName.split(' ').slice(1).join(' ') || '';
+  
+  // Populate role checkboxes
+  populateRoleCheckboxes(userId);
+  
+  document.getElementById('edit-user-modal').style.display = 'flex';
+}
+
+function hideEditUserModal() {
+  document.getElementById('edit-user-modal').style.display = 'none';
+  currentEditUserId = null;
+}
+
+function populateRoleCheckboxes(userId) {
+  const userCard = document.querySelector(`[data-user-id="${userId}"]`);
+  const userRoles = userCard.dataset.roles.split(',').filter(r => r);
+  
+  const roleCheckboxes = document.getElementById('edit-role-checkboxes');
+  roleCheckboxes.innerHTML = '';
+  
+  const roles = [
+    { value: 'admin', label: 'Admin' },
+    { value: 'accounting', label: 'Accounting' },
+    { value: 'superintendent', label: 'Superintendent' },
+    { value: 'project-manager', label: 'Project Manager' },
+    { value: 'designer', label: 'Designer' }
+  ];
+  
+  roles.forEach(role => {
+    const checkbox = document.createElement('label');
+    checkbox.className = 'role-checkbox';
+    checkbox.innerHTML = `
+      <input type="checkbox" name="roles" value="${role.value}" ${userRoles.includes(role.value) ? 'checked' : ''}>
+      <span class="role-checkbox-label">${role.label}</span>
+    `;
+    roleCheckboxes.appendChild(checkbox);
+  });
+}
+
+// User Management Functions
+function editUser(userId) {
+  showEditUserModal(userId);
+}
+
+function changePassword(userId, username) {
+  currentPasswordUserId = userId;
+  document.getElementById('password-modal-username').textContent = username;
+  document.getElementById('new-password').value = '';
+  document.getElementById('confirm-password').value = '';
+  document.getElementById('password-modal').style.display = 'flex';
+}
+
+function closePasswordModal() {
+  document.getElementById('password-modal').style.display = 'none';
+  currentPasswordUserId = null;
+}
+
+function saveNewPassword() {
+  const newPassword = document.getElementById('new-password').value;
+  const confirmPassword = document.getElementById('confirm-password').value;
+  
+  if (!newPassword || !confirmPassword) {
+    showMessage('Please fill in all password fields', 'error');
+    return;
+  }
+  
+  if (newPassword !== confirmPassword) {
+    showMessage('Passwords do not match', 'error');
+    return;
+  }
+  
+  if (newPassword.length < 8) {
+    showMessage('Password must be at least 8 characters long', 'error');
+    return;
+  }
+  
+  const saveBtn = document.getElementById('save-password-btn');
+  const originalText = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.textContent = '⏳ Saving...';
+  
+  fetch('{% url "change_user_password" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+      user_id: currentPasswordUserId,
+      new_password: newPassword
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage(data.message, 'success');
+      closePasswordModal();
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error changing password:', error);
+    showMessage('Error changing password', 'error');
+  })
+  .finally(() => {
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalText;
+  });
+}
+
+function createUser() {
+  const form = document.getElementById('add-user-form');
+  const formData = new FormData(form);
+  
+  const userData = {
+    username: formData.get('username'),
+    email: formData.get('email'),
+    first_name: formData.get('first_name'),
+    last_name: formData.get('last_name'),
+    password: formData.get('password'),
+    card_number: formData.get('card_number'),
+    roles: Array.from(form.querySelectorAll('input[name="roles"]:checked')).map(cb => cb.value)
+  };
+  
+  if (!userData.username || !userData.password) {
+    showMessage('Username and password are required', 'error');
+    return;
+  }
+  
+  if (userData.password.length < 8) {
+    showMessage('Password must be at least 8 characters long', 'error');
+    return;
+  }
+  
+  const createBtn = event.target;
+  const originalText = createBtn.textContent;
+  createBtn.disabled = true;
+  createBtn.textContent = '⏳ Creating...';
+  
+  fetch('{% url "create_user" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(userData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage(data.message, 'success');
+      hideAddUserModal();
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error creating user:', error);
+    showMessage('Error creating user', 'error');
+  })
+  .finally(() => {
+    createBtn.disabled = false;
+    createBtn.textContent = originalText;
+  });
+}
+
+function updateUser() {
+  const form = document.getElementById('edit-user-form');
+  const formData = new FormData(form);
+  
+  const userData = {
+    user_id: formData.get('user_id'),
+    username: formData.get('username'),
+    email: formData.get('email'),
+    first_name: formData.get('first_name'),
+    last_name: formData.get('last_name'),
+    card_number: formData.get('card_number'),
+    roles: Array.from(form.querySelectorAll('input[name="roles"]:checked')).map(cb => cb.value)
+  };
+  
+  if (!userData.username) {
+    showMessage('Username is required', 'error');
+    return;
+  }
+  
+  const updateBtn = event.target;
+  const originalText = updateBtn.textContent;
+  updateBtn.disabled = true;
+  updateBtn.textContent = '⏳ Updating...';
+  
+  fetch('{% url "update_user_groups" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify(userData)
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage(data.message, 'success');
+      hideEditUserModal();
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    console.error('Error updating user:', error);
+    showMessage('Error updating user', 'error');
+  })
+  .finally(() => {
+    updateBtn.disabled = false;
+    updateBtn.textContent = originalText;
+  });
+}
+
+function impersonateUser(userId, username) {
+  if (confirm(`Are you sure you want to impersonate user "${username}"? You will be logged in as them.`)) {
+    const impersonateBtn = event.target;
+    const originalText = impersonateBtn.textContent;
+    impersonateBtn.disabled = true;
+    impersonateBtn.textContent = '⏳ Switching...';
+    
+    fetch('{% url "impersonate_user" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ user_id: userId })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showMessage(data.message, 'success');
+        setTimeout(() => window.location.href = data.redirect_url || '/approvals/', 1000);
+      } else {
+        showMessage(data.message, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error impersonating user:', error);
+      showMessage('Error impersonating user', 'error');
+    })
+    .finally(() => {
+      impersonateBtn.disabled = false;
+      impersonateBtn.textContent = originalText;
+    });
+  }
+}
+
+function toggleUserStatus(userId) {
+  if (confirm('Are you sure you want to toggle this user\'s status?')) {
+    fetch('{% url "toggle_user_status" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({
+        user_id: userId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showMessage(data.message, 'success');
+        // Reload the page to reflect the changes
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      } else {
+        showMessage(data.message, 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      showMessage('Error toggling user status', 'error');
+    });
+  }
+}
+
+function deleteUser(userId, username) {
+  if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+    if (confirm(`This will permanently delete "${username}" and all their data. Are you absolutely sure?`)) {
+      const deleteBtn = event.target;
+      const originalText = deleteBtn.textContent;
+      deleteBtn.disabled = true;
+      deleteBtn.textContent = '⏳ Deleting...';
+      
+      fetch('{% url "delete_user" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ user_id: userId })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showMessage(data.message, 'success');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showMessage(data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting user:', error);
+        showMessage('Error deleting user', 'error');
+      })
+      .finally(() => {
+        deleteBtn.disabled = false;
+        deleteBtn.textContent = originalText;
+      });
+    }
+  }
+}
+
+// Message System
+function showMessage(message, type) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${type}`;
+  messageDiv.textContent = message;
+  document.body.appendChild(messageDiv);
+  
+  setTimeout(() => {
+    messageDiv.style.opacity = '0';
+    setTimeout(() => messageDiv.remove(), 300);
+  }, 3000);
+}
+
+// Modal close functionality
+document.addEventListener('DOMContentLoaded', function() {
+  // Close modals when clicking outside
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+  
+  // Close modals with Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay').forEach(modal => {
+        if (modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        }
+      });
+    }
+  });
+});
+</script>
+{% endblock %}
