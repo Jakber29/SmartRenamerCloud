@@ -635,10 +635,14 @@ function loadBillEntryTool(file) {
       </div>
     </div>
     
-    <div style="display: flex; gap: 8px;">
+    <div style="display: flex; gap: 8px; flex-direction: column;">
       <button type="button" class="btn btn-success" id="mark-paid-btn">
         <span>💳</span>
         <span>Mark as Paid</span>
+      </button>
+      <button type="button" class="btn btn-warning" id="send-back-btn" onclick="sendBackForReview()">
+        <span>↩️</span>
+        <span>Send Back for Review</span>
       </button>
     </div>
   `;
@@ -1121,6 +1125,66 @@ function markBillAsPaid() {
   })
   .catch(error => {
     showMessage('Error marking bill as paid', 'error');
+  });
+}
+
+// Send back for review function
+function sendBackForReview() {
+  if (!selectedFileId) {
+    showMessage('Please select a file first', 'error');
+    return;
+  }
+  
+  if (!confirm('Are you sure you want to send this bill back for review? This will change its status from approved to pending.')) {
+    return;
+  }
+  
+  fetch('{% url "send_back_for_review" %}', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({ file_id: selectedFileId })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showMessage('Bill sent back for review successfully!', 'success');
+      
+      // Remove the file from the bills list since it's no longer approved
+      const fileItem = document.querySelector(`[data-file-id="${selectedFileId}"]`);
+      if (fileItem) {
+        fileItem.remove();
+      }
+      
+      // Clear selection and reset
+      selectedFileId = null;
+      selectedTransactionId = null;
+      document.querySelectorAll('.file-item').forEach(item => {
+        item.classList.remove('selected');
+      });
+      
+      // Reset preview
+      document.getElementById('preview-title').textContent = 'NO FILE SELECTED';
+      document.getElementById('preview-area').style.display = 'flex';
+      document.getElementById('pdf-preview').style.display = 'none';
+      document.querySelector('.preview-icon').textContent = '🖼️';
+      document.querySelector('.preview-area div:last-child').textContent = 'Select a bill to preview';
+      
+      // Reset bill entry tool
+      document.getElementById('bill-entry-content').innerHTML = `
+        <div style="text-align: center; color: #6b7280; padding: 40px 20px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
+          <div>Select a bill to process</div>
+        </div>
+      `;
+    } else {
+      showMessage(data.message, 'error');
+    }
+  })
+  .catch(error => {
+    showMessage('Error sending bill back for review', 'error');
   });
 }
 

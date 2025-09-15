@@ -2,33 +2,363 @@
 <html>
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="csrf-token" content="{{ csrf_token }}">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#111827">
   <title>{% block title %}App{% endblock %}</title>
   <style>
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    .layout { display:flex; min-height:100vh; }
-    aside { width:220px; background:#111827; color:#e5e7eb; padding:16px; }
-    aside a { color:#e5e7eb; text-decoration:none; display:block; padding:8px 10px; border-radius:8px; }
-    aside a.active, aside a:hover { background:#1f2937; }
-    main { flex:1; padding:24px; }
-    .brand { font-weight:700; margin-bottom:12px; }
-    .spacer { height:8px; }
-    form.logout { margin-top:12px; }
-    form.logout button { width:100%; padding:8px 12px; border:0; border-radius:8px; background:#374151; color:#fff; cursor:pointer; }
-    form.logout button:hover { background:#4b5563; }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body { 
+      margin: 0; 
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Mobile-first layout */
+    .layout { 
+      display: flex; 
+      min-height: 100vh; 
+      position: relative;
+    }
+    
+    /* Mobile sidebar - hidden by default */
+    aside { 
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      background: #111827; 
+      color: #e5e7eb; 
+      padding: 20px 16px;
+      z-index: 1000;
+      transition: left 0.3s ease;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    aside.mobile-open {
+      left: 0;
+    }
+    
+    /* Mobile overlay */
+    .mobile-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .mobile-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    /* Mobile header */
+    .mobile-header {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: #111827;
+      color: white;
+      z-index: 1001;
+      padding: 0 16px;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .mobile-header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    
+    .hamburger {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      cursor: pointer;
+    }
+    
+    .hamburger span {
+      width: 100%;
+      height: 2px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+    
+    .hamburger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    
+    .hamburger.active span:nth-child(2) {
+      opacity: 0;
+    }
+    
+    .hamburger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -6px);
+    }
+    
+    /* Main content */
+    main { 
+      flex: 1; 
+      padding: 24px;
+      padding-top: 80px; /* Space for mobile header */
+      min-height: 100vh;
+    }
+    
+    /* Desktop styles */
+    @media (min-width: 768px) {
+      .mobile-header {
+        display: none !important;
+      }
+      
+      aside {
+        position: static;
+        left: 0;
+        width: 220px;
+        height: auto;
+        transform: none;
+        transition: all 0.3s ease;
+      }
+      
+      aside.sidebar-hidden {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        border: none;
+      }
+      
+      main {
+        padding-top: 24px;
+        transition: all 0.3s ease;
+      }
+      
+      main.sidebar-hidden {
+        margin-left: 0;
+      }
+      
+      .mobile-overlay {
+        display: none;
+      }
+    }
+    
+    /* Sidebar content */
+    aside a { 
+      color: #e5e7eb; 
+      text-decoration: none; 
+      display: block; 
+      padding: 12px 16px; 
+      border-radius: 8px; 
+      margin-bottom: 4px;
+      font-size: 15px;
+      transition: all 0.2s ease;
+    }
+    
+    aside a.active, aside a:hover { 
+      background: #1f2937; 
+    }
+    
+    /* Enhanced navigation links */
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      font-size: 15px;
+      transition: all 0.2s ease;
+      min-height: 48px;
+      touch-action: manipulation;
+    }
+    
+    .nav-link:hover {
+      background: #1f2937;
+      transform: translateX(4px);
+    }
+    
+    .nav-link.active {
+      background: #3b82f6;
+      color: white;
+    }
+    
+    .nav-icon {
+      font-size: 18px;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    
+    .nav-text {
+      flex: 1;
+      font-weight: 500;
+    }
+    
+    /* Impersonation notice */
+    .impersonation-notice {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 12px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      text-align: center;
+    }
+    
+    .impersonation-text {
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    
+    .impersonation-btn {
+      width: 100%;
+      padding: 8px 12px;
+      border: 0;
+      border-radius: 6px;
+      background: #dc2626;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.2s ease;
+      touch-action: manipulation;
+    }
+    
+    .impersonation-btn:hover {
+      background: #b91c1c;
+    }
+    
+    /* Logout button */
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: #374151;
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 48px;
+      touch-action: manipulation;
+    }
+    
+    .logout-btn:hover {
+      background: #4b5563;
+      transform: translateX(4px);
+    }
+    
+    .brand { 
+      font-weight: 700; 
+      margin-bottom: 20px; 
+      font-size: 20px;
+      padding: 0 16px;
+    }
+    
+    .spacer { height: 16px; }
+    
+    form.logout { margin-top: 20px; }
+    form.logout button { 
+      width: 100%; 
+      padding: 12px 16px; 
+      border: 0; 
+      border-radius: 8px; 
+      background: #374151; 
+      color: #fff; 
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.2s ease;
+    }
+    form.logout button:hover { background: #4b5563; }
     
     /* Navigation sections */
-    .nav-section { margin: 16px 0; }
+    .nav-section { 
+      margin: 24px 0; 
+    }
+    
     .nav-section-title { 
-      font-size: 11px; 
+      font-size: 12px; 
       font-weight: 600; 
       text-transform: uppercase; 
       letter-spacing: 0.5px; 
       color: #9ca3af; 
-      margin-bottom: 8px; 
-      padding: 0 10px; 
+      margin-bottom: 16px; 
+      padding: 0 16px; 
     }
-    .nav-section a { margin-left: 8px; }
+    
+    .nav-section a { 
+      margin-left: 0; 
+    }
+    
+    /* Mobile sidebar improvements */
+    @media (max-width: 767px) {
+      .nav-link {
+        padding: 16px 20px;
+        font-size: 16px;
+        min-height: 56px;
+      }
+      
+      .nav-icon {
+        font-size: 20px;
+        width: 24px;
+      }
+      
+      .nav-section {
+        margin: 28px 0;
+      }
+      
+      .nav-section-title {
+        font-size: 13px;
+        margin-bottom: 20px;
+        padding: 0 20px;
+      }
+      
+      .brand {
+        font-size: 22px;
+        margin-bottom: 24px;
+        padding: 0 20px;
+      }
+      
+      .impersonation-notice {
+        margin: 0 16px 16px 16px;
+        padding: 16px;
+        font-size: 14px;
+      }
+      
+      .logout-btn {
+        padding: 16px 20px;
+        font-size: 16px;
+        min-height: 56px;
+        margin: 0 16px;
+      }
+    }
     
     /* Message styles */
     .message-error {
@@ -46,21 +376,434 @@
       color: #374151;
       border: 1px solid #d1d5db;
     }
+    
+    /* Mobile bottom navigation */
+    .mobile-bottom-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      z-index: 1000;
+      padding: 0 16px;
+    }
+    
+    .mobile-bottom-nav .nav-items {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      height: 100%;
+    }
+    
+    .mobile-bottom-nav .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      color: #6b7280;
+      font-size: 10px;
+      transition: color 0.2s ease;
+    }
+    
+    .mobile-bottom-nav .nav-item.active {
+      color: #3b82f6;
+    }
+    
+    .mobile-bottom-nav .nav-item .icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+    
+    /* Show mobile bottom nav on mobile */
+    @media (max-width: 767px) {
+      .mobile-bottom-nav {
+        display: block;
+      }
+      
+      main {
+        padding-bottom: 80px; /* Space for bottom nav */
+      }
+    }
+    
+    /* Touch-friendly buttons */
+    .btn, button, input[type="submit"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Better touch targets */
+    a, button, input, select, textarea {
+      touch-action: manipulation;
+    }
+    
+    /* Touch feedback */
+    .touch-feedback {
+      transition: transform 0.1s ease, background-color 0.1s ease;
+    }
+    
+    .touch-feedback:active {
+      transform: scale(0.98);
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Swipe gestures for mobile */
+    .swipe-container {
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .swipe-content {
+      transition: transform 0.3s ease;
+    }
+    
+    /* Pull to refresh indicator */
+    .pull-to-refresh {
+      position: fixed;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #3b82f6;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 0 0 12px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 1000;
+      transition: top 0.3s ease;
+    }
+    
+    .pull-to-refresh.active {
+      top: 0;
+    }
+    
+    /* Sidebar Toggle Button */
+    .sidebar-toggle {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1002;
+      background: #111827;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .sidebar-toggle:hover {
+      background: #1f2937;
+      transform: scale(1.05);
+    }
+    
+    .sidebar-toggle .toggle-icon {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    /* Hide toggle button on mobile */
+    @media (max-width: 767px) {
+      .sidebar-toggle {
+        display: none;
+      }
+    }
+    
+    /* Mobile-specific animations */
+    @media (max-width: 767px) {
+      .fade-in {
+        animation: fadeIn 0.3s ease;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .slide-up {
+        animation: slideUp 0.3s ease;
+      }
+      
+      @keyframes slideUp {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+      }
+    }
   </style>
   {% block extra_css %}{% endblock %}
 </head>
 <body>
+  <!-- Mobile Header -->
+  <div class="mobile-header">
+    <div class="hamburger" onclick="toggleMobileMenu()">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <h1>{% block mobile_title %}Book Assist{% endblock %}</h1>
+    <div></div> <!-- Spacer for centering -->
+  </div>
+  
+  <!-- Desktop Sidebar Toggle -->
+  <div class="sidebar-toggle" onclick="toggleSidebar()">
+    <span class="toggle-icon">☰</span>
+  </div>
+  
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" onclick="closeMobileMenu()"></div>
+  
   <div class="layout">
-    <aside>
+    <aside id="sidebar">
       {% block sidebar %}{% include "partials/sidebar.html" %}{% endblock %}
     </aside>
     <main>
       {% block content %}{% endblock %}
     </main>
   </div>
+  
+  <!-- Mobile Bottom Navigation -->
+  <div class="mobile-bottom-nav">
+    <div class="nav-items">
+      <a href="{% url 'dashboard' %}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+        <div class="icon">🏠</div>
+        <div>Dashboard</div>
+      </a>
+      <a href="{% url 'file_manager' %}" class="nav-item {% if request.path|slice:':7' == '/files/' %}active{% endif %}">
+        <div class="icon">📁</div>
+        <div>Files</div>
+      </a>
+      <a href="{% url 'approvals_list' %}" class="nav-item {% if request.path|slice:':11' == '/approvals/' %}active{% endif %}">
+        <div class="icon">📋</div>
+        <div>Approvals</div>
+      </a>
+      <a href="{% url 'transactions_list' %}" class="nav-item {% if request.path|slice:':13' == '/transactions' %}active{% endif %}">
+        <div class="icon">💰</div>
+        <div>Transactions</div>
+      </a>
+      <a href="/settings/" class="nav-item {% if request.path|slice:':9' == '/settings' %}active{% endif %}">
+        <div class="icon">⚙️</div>
+        <div>Settings</div>
+      </a>
+    </div>
+  </div>
   {% block extra_js %}{% endblock %}
   
   <script>
+  // Mobile navigation functions
+  function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    const hamburger = document.querySelector('.hamburger');
+    
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('active');
+    hamburger.classList.toggle('active');
+    
+    // Prevent body scroll when menu is open
+    if (sidebar.classList.contains('mobile-open')) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  }
+  
+  function closeMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.mobile-overlay');
+    const hamburger = document.querySelector('.hamburger');
+    
+    sidebar.classList.remove('mobile-open');
+    overlay.classList.remove('active');
+    hamburger.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  
+  // Desktop sidebar toggle function
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const main = document.querySelector('main');
+    const toggleIcon = document.querySelector('.toggle-icon');
+    
+    sidebar.classList.toggle('sidebar-hidden');
+    main.classList.toggle('sidebar-hidden');
+    
+    // Update toggle icon
+    if (sidebar.classList.contains('sidebar-hidden')) {
+      toggleIcon.textContent = '☰';
+    } else {
+      toggleIcon.textContent = '✕';
+    }
+    
+    // Save preference to localStorage
+    localStorage.setItem('sidebarHidden', sidebar.classList.contains('sidebar-hidden'));
+  }
+  
+  // Close mobile menu when clicking on sidebar links
+  document.addEventListener('DOMContentLoaded', function() {
+    const sidebarLinks = document.querySelectorAll('#sidebar a');
+    sidebarLinks.forEach(link => {
+      link.addEventListener('click', function() {
+        // Only close on mobile
+        if (window.innerWidth < 768) {
+          closeMobileMenu();
+        }
+      });
+    });
+    
+    // Close menu on escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeMobileMenu();
+      }
+    });
+    
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 768) {
+        closeMobileMenu();
+      }
+    });
+    
+    // Add touch feedback to interactive elements
+    addTouchFeedback();
+    
+    // Add pull-to-refresh functionality
+    addPullToRefresh();
+    
+    // Add swipe gestures for mobile navigation
+    addSwipeGestures();
+    
+    // Restore sidebar state from localStorage (desktop only)
+    if (window.innerWidth >= 768) {
+      const sidebarHidden = localStorage.getItem('sidebarHidden') === 'true';
+      if (sidebarHidden) {
+        const sidebar = document.getElementById('sidebar');
+        const main = document.querySelector('main');
+        const toggleIcon = document.querySelector('.toggle-icon');
+        
+        sidebar.classList.add('sidebar-hidden');
+        main.classList.add('sidebar-hidden');
+        toggleIcon.textContent = '☰';
+      }
+    }
+  });
+  
+  // Add touch feedback to buttons and links
+  function addTouchFeedback() {
+    const touchElements = document.querySelectorAll('button, a, .btn, .file-item, .quick-action-btn');
+    touchElements.forEach(element => {
+      element.classList.add('touch-feedback');
+    });
+  }
+  
+  // Pull to refresh functionality
+  function addPullToRefresh() {
+    if (window.innerWidth > 767) return; // Only on mobile
+    
+    let startY = 0;
+    let currentY = 0;
+    let isPulling = false;
+    let pullThreshold = 80;
+    
+    // Create pull-to-refresh indicator
+    const pullIndicator = document.createElement('div');
+    pullIndicator.className = 'pull-to-refresh';
+    pullIndicator.innerHTML = '↓ Pull to refresh';
+    document.body.appendChild(pullIndicator);
+    
+    document.addEventListener('touchstart', function(e) {
+      if (window.scrollY === 0) {
+        startY = e.touches[0].clientY;
+        isPulling = true;
+      }
+    });
+    
+    document.addEventListener('touchmove', function(e) {
+      if (!isPulling) return;
+      
+      currentY = e.touches[0].clientY;
+      const pullDistance = currentY - startY;
+      
+      if (pullDistance > 0 && window.scrollY === 0) {
+        e.preventDefault();
+        
+        if (pullDistance > pullThreshold) {
+          pullIndicator.innerHTML = '↑ Release to refresh';
+          pullIndicator.style.background = '#16a34a';
+        } else {
+          pullIndicator.innerHTML = '↓ Pull to refresh';
+          pullIndicator.style.background = '#3b82f6';
+        }
+        
+        pullIndicator.style.top = Math.min(pullDistance * 0.5, 60) + 'px';
+      }
+    });
+    
+    document.addEventListener('touchend', function(e) {
+      if (!isPulling) return;
+      
+      const pullDistance = currentY - startY;
+      
+      if (pullDistance > pullThreshold && window.scrollY === 0) {
+        pullIndicator.innerHTML = '🔄 Refreshing...';
+        pullIndicator.style.background = '#6b7280';
+        pullIndicator.classList.add('active');
+        
+        // Refresh the page
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
+      } else {
+        pullIndicator.style.top = '-60px';
+      }
+      
+      isPulling = false;
+    });
+  }
+  
+  // Add swipe gestures for navigation
+  function addSwipeGestures() {
+    if (window.innerWidth > 767) return; // Only on mobile
+    
+    let startX = 0;
+    let startY = 0;
+    let endX = 0;
+    let endY = 0;
+    
+    document.addEventListener('touchstart', function(e) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+    });
+    
+    document.addEventListener('touchend', function(e) {
+      endX = e.changedTouches[0].clientX;
+      endY = e.changedTouches[0].clientY;
+      
+      const deltaX = endX - startX;
+      const deltaY = endY - startY;
+      const minSwipeDistance = 50;
+      
+      // Check if it's a horizontal swipe
+      if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+        // Swipe right - open menu
+        if (deltaX > 0 && startX < 50) {
+          toggleMobileMenu();
+        }
+        // Swipe left - close menu
+        else if (deltaX < 0) {
+          closeMobileMenu();
+        }
+      }
+    });
+  }
+  
   function stopImpersonation() {
     if (confirm('Are you sure you want to stop impersonation and return to your admin account?')) {
       fetch('/api/users/stop-impersonation/', {
