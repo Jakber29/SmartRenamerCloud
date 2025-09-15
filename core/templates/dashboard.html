@@ -1,9 +1,189 @@
 {% extends "base.html" %}
-{% block title %}Projects{% endblock %}
+{% block title %}Dashboard{% endblock %}
+{% block mobile_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.dashboard-header {
+  margin-bottom: 24px;
+}
+
+.dashboard-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.dashboard-header p {
+  color: #6b7280;
+  font-size: 16px;
+  margin: 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.stat-card .stat-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 4px;
+}
+
+.stat-card .stat-label {
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #374151;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-height: 60px;
+}
+
+.quick-action-btn:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.quick-action-btn .icon {
+  font-size: 24px;
+  width: 32px;
+  text-align: center;
+}
+
+.quick-action-btn .text {
+  flex: 1;
+}
+
+.quick-action-btn .arrow {
+  color: #9ca3af;
+  font-size: 18px;
+}
+
+/* Desktop styles */
+@media (min-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .quick-actions {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .quick-actions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <h1>Projects</h1>
-  <form method="post" action="{% url 'logout' %}">
-    {% csrf_token %}
-    <button type="submit">Log out</button>
-  </form>
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Welcome back!</h1>
+    <p>Here's what's happening with your files and approvals today.</p>
+  </div>
+  
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-number">{{ unprocessed_files_count|default:0 }}</div>
+      <div class="stat-label">Files to Process</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ pending_approvals_count|default:0 }}</div>
+      <div class="stat-label">Pending Approvals</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ processed_files_count|default:0 }}</div>
+      <div class="stat-label">Processed Files</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-number">{{ total_transactions_count|default:0 }}</div>
+      <div class="stat-label">Total Transactions</div>
+    </div>
+  </div>
+  
+  <div class="quick-actions">
+    <a href="{% url 'file_manager' %}" class="quick-action-btn">
+      <div class="icon">📁</div>
+      <div class="text">File Manager</div>
+      <div class="arrow">→</div>
+    </a>
+    
+    <a href="{% url 'approvals_list' %}" class="quick-action-btn">
+      <div class="icon">📋</div>
+      <div class="text">Approvals</div>
+      <div class="arrow">→</div>
+    </a>
+    
+    <a href="{% url 'transactions_list' %}" class="quick-action-btn">
+      <div class="icon">💰</div>
+      <div class="text">Transactions</div>
+      <div class="arrow">→</div>
+    </a>
+    
+    <a href="{% url 'projects_list' %}" class="quick-action-btn">
+      <div class="icon">🏗️</div>
+      <div class="text">Projects</div>
+      <div class="arrow">→</div>
+    </a>
+    
+    <a href="{% url 'vendors_list' %}" class="quick-action-btn">
+      <div class="icon">🏢</div>
+      <div class="text">Vendors</div>
+      <div class="arrow">→</div>
+    </a>
+    
+    <a href="/settings/" class="quick-action-btn">
+      <div class="icon">⚙️</div>
+      <div class="text">Settings</div>
+      <div class="arrow">→</div>
+    </a>
+  </div>
+</div>
 {% endblock %}

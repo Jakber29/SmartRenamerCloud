@@ -86,6 +86,7 @@ urlpatterns = [
     path("api/bills/matching-transactions/", views.get_matching_transactions, name="get_matching_transactions"),
     path("api/bills/create/", views.create_bill, name="create_bill"),
     path("api/bills/unmatch/", views.unmatch_transaction, name="unmatch_transaction"),
+    path("api/bills/send-back-for-review/", views.send_back_for_review, name="send_back_for_review"),
     
     # Users (Admin only)
     path("users/", views.users_list, name="users_list"),

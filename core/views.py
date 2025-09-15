@@ -1532,11 +1532,13 @@ def assign_project_superintendents(request, project_id):
 def approvals_list(request):
     """Display approvals page with files that need approval"""
     # Get files that the user has access to based on their role and project assignments
+    # Only show files that are pending approval
     files = File.objects.filter(
         project__isnull=False,
         vendor__isnull=False,
         invoice_number__isnull=False,
-        total__isnull=False
+        total__isnull=False,
+        approval_status='pending'  # Only show files pending approval
     ).exclude(project='', vendor='', invoice_number='', total='$0.00')
     
     # Filter files based on user access
@@ -1649,7 +1651,7 @@ def approvals_list(request):
         })
     
     return render(request, "approvals.html", {
-        "files": accessible_files,
+        "pending_files": accessible_files,  # Changed from "files" to "pending_files"
         "files_json": json.dumps(files_json),
         "user_projects": list(user_projects),
         "is_admin": request.user.is_staff,
@@ -2224,6 +2226,48 @@ def toggle_user_status(request):
         return JsonResponse({
             'success': False,
             'message': f'Error toggling user status: {str(e)}'
+        })
+
+@login_required
+@admin_or_staff_required
+@require_http_methods(["POST"])
+def send_back_for_review(request):
+    """Send an approved bill back for review (change status from approved to pending)"""
+    try:
+        data = json.loads(request.body)
+        file_id = data.get('file_id')
+        
+        if not file_id:
+            return JsonResponse({
+                'success': False,
+                'message': 'File ID is required'
+            })
+        
+        file_obj = get_object_or_404(File, id=file_id)
+        
+        # Check if the file is currently approved
+        if file_obj.approval_status != 'approved':
+            return JsonResponse({
+                'success': False,
+                'message': 'Only approved files can be sent back for review'
+            })
+        
+        # Change status from approved to pending
+        file_obj.approval_status = 'pending'
+        file_obj.approval_comment = f'Sent back for review by {request.user.username} on {timezone.now().strftime("%Y-%m-%d %H:%M")}'
+        file_obj.approved_by = None  # Clear the previous approver
+        file_obj.approved_at = None  # Clear the approval timestamp
+        file_obj.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Bill sent back for review successfully'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error sending bill back for review: {str(e)}'
         })
 
 @login_required
