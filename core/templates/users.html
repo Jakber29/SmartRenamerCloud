@@ -1553,7 +1553,7 @@ function impersonateUser(userId, username) {
     .then(data => {
       if (data.success) {
         showMessage(data.message, 'success');
-        setTimeout(() => window.location.href = data.redirect_url || '/approvals/', 1000);
+        setTimeout(() => window.location.href = (data.redirect_url && data.redirect_url !== 'undefined') ? data.redirect_url : '/approvals/', 1000);
       } else {
         showMessage(data.message, 'error');
       }

@@ -1611,6 +1611,7 @@ def approvals_list(request):
             'uploaded_at': file.uploaded_at.strftime('%b %d, %Y'),
             'description': file.description or '',
             'file': file.file.name if file.file else '',
+            'file_url': file.file.url if file.file else '',
             'project': file.project or '',
             'vendor': file.vendor or '',
             'date': file.date or '',

@@ -6,278 +6,89 @@
 
 {% block extra_css %}
 <style>
-/* Mobile-first approvals page */
+/* TikTok/YouTube Shorts style approvals */
 .approvals-container {
-  padding: 16px;
-  max-width: 100%;
-  margin: 0 auto;
-}
-
-.approvals-header {
-  margin-bottom: 20px;
-}
-
-.approvals-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 8px 0;
-}
-
-.approvals-subtitle {
-  color: #6b7280;
-  font-size: 14px;
+  padding: 0;
   margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  background: #000;
 }
 
-.file-count-badge {
-  background: #3b82f6;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-left: 12px;
-}
-
-/* File list - mobile optimized */
-.files-list {
-  margin-bottom: 20px;
-}
-
-.file-item {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.file-item:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
-}
-
-.file-item.selected {
-  border-color: #3b82f6;
-  background: #eff6ff;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
-}
-
-.file-icon {
-  font-size: 24px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f3f4f6;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-
-.file-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.file-name {
-  font-weight: 600;
-  color: #111827;
-  font-size: 14px;
-  margin-bottom: 4px;
-  word-break: break-word;
-}
-
-.file-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #6b7280;
-  flex-wrap: wrap;
-}
-
-.file-status {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.file-status.pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.file-status.approved {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.file-status.rejected {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* File details panel */
-.file-details-panel {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.file-details-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.file-details-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #111827;
-  margin: 0;
-}
-
-.file-preview {
+.current-file-container {
   width: 100%;
-  max-width: 300px;
-  height: 200px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* File preview - takes most of the screen */
+.file-preview-area {
+  flex: 1;
+  background: #000;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 16px;
+  position: relative;
   overflow: hidden;
 }
 
-.file-preview img {
+.file-preview {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
 }
 
 .file-preview-icon {
-  font-size: 48px;
-  color: #9ca3af;
+  font-size: 120px;
+  color: #666;
 }
 
-.file-info-grid {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.info-label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
-}
-
-.info-value {
-  color: #111827;
-  font-size: 14px;
-  text-align: right;
-  word-break: break-word;
-}
-
-/* Approval actions */
-.approval-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.approval-btn {
-  flex: 1;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 48px;
-}
-
-.approval-btn.approve {
-  background: #10b981;
+/* File info overlay */
+.file-info-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
   color: white;
+  padding: 20px;
+  z-index: 10;
 }
 
-.approval-btn.approve:hover {
-  background: #059669;
-}
-
-.approval-btn.reject {
-  background: #ef4444;
-  color: white;
-}
-
-.approval-btn.reject:hover {
-  background: #dc2626;
-}
-
-.approval-btn.secondary {
-  background: #6b7280;
-  color: white;
-}
-
-.approval-btn.secondary:hover {
-  background: #4b5563;
-}
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6b7280;
-}
-
-.empty-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.empty-title {
+.file-title {
   font-size: 18px;
   font-weight: 600;
-  color: #374151;
   margin-bottom: 8px;
+  line-height: 1.3;
 }
 
-.empty-text {
+.file-meta {
   font-size: 14px;
-  line-height: 1.5;
+  color: #ccc;
+  margin-bottom: 12px;
+}
+
+.file-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Bottom action area */
+.action-area {
+  background: white;
+  padding: 20px;
+  border-top: 1px solid #e5e7eb;
+  min-height: 200px;
 }
 
 /* Class selection */
 .class-selection {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .class-selection-label {
@@ -285,6 +96,7 @@
   color: #374151;
   margin-bottom: 8px;
   display: block;
+  font-size: 14px;
 }
 
 .class-search-container {
@@ -315,7 +127,7 @@
   border: 1px solid #d1d5db;
   border-top: none;
   border-radius: 0 0 8px 8px;
-  max-height: 200px;
+  max-height: 150px;
   overflow-y: auto;
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -340,27 +152,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px;
+  padding: 8px 12px;
   background: #eff6ff;
   border: 1px solid #3b82f6;
-  border-radius: 8px;
+  border-radius: 6px;
   margin-top: 8px;
 }
 
 .selected-class-text {
   font-weight: 500;
   color: #1e40af;
+  font-size: 14px;
 }
 
 .clear-class {
   background: none;
   border: none;
   color: #6b7280;
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   padding: 0;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -374,7 +187,7 @@
 
 /* Comments */
 .comments-section {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .comments-label {
@@ -382,21 +195,165 @@
   color: #374151;
   margin-bottom: 8px;
   display: block;
+  font-size: 14px;
 }
 
 .comments-textarea {
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
   resize: vertical;
-  min-height: 80px;
+  min-height: 60px;
   font-family: inherit;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 14px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 50px;
+}
+
+.action-btn.approve {
+  background: #10b981;
+  color: white;
+}
+
+.action-btn.approve:hover {
+  background: #059669;
+}
+
+.action-btn.hold {
+  background: #f59e0b;
+  color: white;
+}
+
+.action-btn.hold:hover {
+  background: #d97706;
+}
+
+.action-btn.reject {
+  background: #ef4444;
+  color: white;
+}
+
+.action-btn.reject:hover {
+  background: #dc2626;
+}
+
+.action-btn.skip {
+  background: #6b7280;
+  color: white;
+}
+
+.action-btn.skip:hover {
+  background: #4b5563;
+}
+
+/* Navigation buttons */
+.nav-buttons {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+}
+
+.nav-btn {
+  position: absolute;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover {
+  background: rgba(0,0,0,0.7);
+}
+
+.nav-btn.prev {
+  left: 20px;
+}
+
+.nav-btn.next {
+  right: 20px;
+}
+
+/* File counter */
+.file-counter {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 20;
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  color: #6b7280;
+  padding: 40px;
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.empty-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.empty-text {
+  font-size: 16px;
+  line-height: 1.5;
+  max-width: 300px;
 }
 
 /* Messages */
 .message {
+  position: fixed;
+  top: 80px;
+  left: 16px;
+  right: 16px;
+  z-index: 1000;
   padding: 12px 16px;
   border-radius: 8px;
   margin-bottom: 16px;
@@ -422,41 +379,6 @@
   border: 1px solid #93c5fd;
 }
 
-/* Desktop styles */
-@media (min-width: 768px) {
-  .approvals-container {
-    padding: 24px;
-    max-width: 1200px;
-  }
-  
-  .approvals-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-  
-  .files-list {
-    margin-bottom: 0;
-  }
-  
-  .file-details-panel {
-    margin-bottom: 0;
-    position: sticky;
-    top: 20px;
-  }
-  
-  .approval-actions {
-    position: sticky;
-    bottom: 20px;
-    background: white;
-    padding: 16px;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-}
-
 /* Loading states */
 .loading {
   display: flex;
@@ -480,252 +402,302 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Desktop styles - make it more compact */
+@media (min-width: 768px) {
+  .approvals-container {
+    max-width: 600px;
+    margin: 0 auto;
+    height: 100vh;
+  }
+  
+  .action-area {
+    min-height: 150px;
+  }
+  
+  .file-preview-icon {
+    font-size: 80px;
+  }
+  
+  .file-title {
+    font-size: 16px;
+  }
+  
+  .file-amount {
+    font-size: 20px;
+  }
+}
 </style>
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <div class="approvals-container">
-  <div class="approvals-header">
-    <h1 class="approvals-title">
-      Files to Approve
-      <span class="file-count-badge">{{ pending_files|length }}</span>
-    </h1>
-    <p class="approvals-subtitle">Review and approve pending files</p>
-  </div>
+  {% if pending_files %}
+    <div class="file-counter">
+      <span id="current-file-number">1</span> / <span id="total-files">{{ pending_files|length }}</span>
+    </div>
+    
+    <!-- Navigation buttons -->
+    <div class="nav-buttons">
+      <button class="nav-btn prev" onclick="previousFile()" id="prev-btn" style="display: none;">‹</button>
+      <button class="nav-btn next" onclick="nextFile()" id="next-btn">›</button>
+    </div>
+    
+    <!-- Current file display -->
+    <div class="current-file-container" id="current-file-container">
+      <!-- File will be loaded here by JavaScript -->
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">✅</div>
+      <div class="empty-title">All caught up!</div>
+      <div class="empty-text">No files pending approval</div>
+    </div>
+  {% endif %}
+</div>
 
-  <!-- Files List -->
-  <div class="files-list">
-    {% if pending_files %}
-      {% for file in pending_files %}
-        <div class="file-item touch-feedback" data-file-id="{{ file.id }}" onclick="selectFile({{ file.id }})">
-          <div class="file-icon">
-            {% if file.file_type == '.pdf' %}📄
-            {% elif file.file_type == '.doc' or file.file_type == '.docx' %}📝
-            {% elif file.file_type == '.jpg' or file.file_type == '.jpeg' or file.file_type == '.png' %}🖼️
-            {% else %}📁{% endif %}
-          </div>
-          <div class="file-info">
-            <div class="file-name">{{ file.name }}</div>
-            <div class="file-meta">
-              <span>{{ file.file_size_display }}</span>
-              <span>•</span>
-              <span>{{ file.uploaded_at|date:"M d, Y" }}</span>
-              <span class="file-status pending">Pending</span>
-            </div>
-          </div>
-        </div>
-      {% endfor %}
-    {% else %}
+<!-- Messages -->
+{% if messages %}
+  {% for message in messages %}
+    <div class="message message-{{ message.tags }}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+<script>
+let files = {{ files_json|safe }};
+let classes = {{ classes_json|safe }};
+let currentFileIndex = 0;
+let currentFileId = null;
+
+// Debug logging and error handling
+console.log('Files:', files);
+console.log('Classes:', classes);
+
+// Ensure files and classes are arrays
+if (!Array.isArray(files)) {
+  console.error('Files is not an array:', files);
+  files = [];
+}
+
+if (!Array.isArray(classes)) {
+  console.error('Classes is not an array:', classes);
+  classes = [];
+}
+
+function loadCurrentFile() {
+  if (files.length === 0) {
+    document.querySelector('.approvals-container').innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">✅</div>
         <div class="empty-title">All caught up!</div>
         <div class="empty-text">No files pending approval</div>
       </div>
-    {% endif %}
-  </div>
-
-  <!-- File Details Panel -->
-  <div class="file-details-panel" id="file-details-panel" style="display: none;">
-    <div class="file-details-header">
-      <h2 class="file-details-title">File Details</h2>
-    </div>
-    
-    <div class="file-preview" id="file-preview">
-      <div class="file-preview-icon">📄</div>
-    </div>
-    
-    <div class="file-info-grid" id="file-info-grid">
-      <!-- File info will be populated by JavaScript -->
-    </div>
-    
-    <!-- Class Selection -->
-    <div class="class-selection">
-      <label class="class-selection-label" for="class-search">Select Class:</label>
-      <div class="class-search-container">
-        <input type="text" class="class-search" id="class-search" placeholder="Search for a class..." autocomplete="off">
-        <div class="class-dropdown" id="class-dropdown" style="display: none;">
-          <!-- Classes will be populated by JavaScript -->
-        </div>
-      </div>
-      <div class="selected-class" id="selected-class" style="display: none;">
-        <span class="selected-class-text"></span>
-        <button type="button" class="clear-class" onclick="clearClassSelection()">×</button>
-      </div>
-    </div>
-    
-    <!-- Comments -->
-    <div class="comments-section">
-      <label class="comments-label" for="approval-comment">Comments (optional):</label>
-      <textarea class="comments-textarea" id="approval-comment" placeholder="Add any comments about this approval..."></textarea>
-    </div>
-    
-    <!-- Approval Actions -->
-    <div class="approval-actions">
-      <button class="approval-btn secondary" onclick="skipFile()">
-        <span>⏭️</span>
-        <span>Skip</span>
-      </button>
-      <button class="approval-btn reject" onclick="rejectFile()">
-        <span>❌</span>
-        <span>Reject</span>
-      </button>
-      <button class="approval-btn approve" onclick="approveFile()">
-        <span>✅</span>
-        <span>Approve</span>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Messages -->
-{% if messages %}
-  <div style="position: fixed; top: 80px; left: 16px; right: 16px; z-index: 1000;">
-    {% for message in messages %}
-      <div class="message message-{{ message.tags }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-{% endif %}
-
-<script>
-let selectedFileId = null;
-let files = {{ files_json|safe }};
-let classes = {{ classes_json|safe }};
-
-function selectFile(fileId) {
-  // Remove previous selection
-  document.querySelectorAll('.file-item').forEach(item => {
-    item.classList.remove('selected');
-  });
-  
-  // Add selection to clicked item
-  document.querySelector(`[data-file-id="${fileId}"]`).classList.add('selected');
-  
-  selectedFileId = fileId;
-  
-  // Find the file data
-  const file = files.find(f => f.id === fileId);
-  if (!file) return;
-  
-  // Show the details panel
-  const detailsPanel = document.getElementById('file-details-panel');
-  detailsPanel.style.display = 'block';
-  
-  // Update file preview
-  const preview = document.getElementById('file-preview');
-  if (file.file_type === '.jpg' || file.file_type === '.jpeg' || file.file_type === '.png') {
-    // For images, try to load the actual file
-    const img = new Image();
-    img.onload = function() {
-      preview.innerHTML = `<img src="${file.file_url}" alt="File preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" />`;
-    };
-    img.onerror = function() {
-      // If image fails to load, show icon
-      preview.innerHTML = `<div class="file-preview-icon">🖼️</div>`;
-    };
-    img.src = file.file_url;
-  } else {
-    const icon = file.file_type === '.pdf' ? '📄' : 
-                 (file.file_type === '.doc' || file.file_type === '.docx') ? '📝' : '📁';
-    preview.innerHTML = `<div class="file-preview-icon">${icon}</div>`;
+    `;
+    return;
   }
   
-  // Update file info
-  const infoGrid = document.getElementById('file-info-grid');
-  infoGrid.innerHTML = `
-    <div class="info-row">
-      <span class="info-label">File Name:</span>
-      <span class="info-value">${file.name}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">File Size:</span>
-      <span class="info-value">${file.file_size_display}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Upload Date:</span>
-      <span class="info-value">${new Date(file.uploaded_at).toLocaleDateString()}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">File Type:</span>
-      <span class="info-value">${file.file_type}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Project:</span>
-      <span class="info-value">${file.project || 'Not set'}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Vendor:</span>
-      <span class="info-value">${file.vendor || 'Not set'}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Invoice Number:</span>
-      <span class="info-value">${file.invoice_number || 'Not set'}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-label">Total:</span>
-      <span class="info-value">${file.total || 'Not set'}</span>
+  const file = files[currentFileIndex];
+  currentFileId = file.id;
+  
+  // Update counter
+  document.getElementById('current-file-number').textContent = currentFileIndex + 1;
+  document.getElementById('total-files').textContent = files.length;
+  
+  // Update navigation buttons
+  document.getElementById('prev-btn').style.display = currentFileIndex > 0 ? 'flex' : 'none';
+  document.getElementById('next-btn').style.display = currentFileIndex < files.length - 1 ? 'flex' : 'none';
+  
+  // Create file preview
+  let previewHtml = '';
+  if (file.file_type === '.jpg' || file.file_type === '.jpeg' || file.file_type === '.png' || file.file_type === '.gif' || file.file_type === '.webp') {
+    // For images, show the actual image
+    if (file.file_url && file.file_url !== 'undefined' && file.file_url !== '') {
+      previewHtml = `<img src="${file.file_url}" alt="File preview" class="file-preview" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+    } else {
+      previewHtml = '';
+    }
+  } else if (file.file_type === '.pdf') {
+    // For PDFs, try to show the PDF using an iframe
+    if (file.file_url && file.file_url !== 'undefined' && file.file_url !== '') {
+      previewHtml = `
+        <iframe src="${file.file_url}" class="file-preview" style="width: 100%; height: 100%; border: none;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"></iframe>
+      `;
+    } else {
+      previewHtml = '';
+    }
+  } else if (file.file_type === '.doc' || file.file_type === '.docx') {
+    // For Word docs, try to show using Google Docs viewer
+    if (file.file_url && file.file_url !== 'undefined' && file.file_url !== '') {
+      previewHtml = `
+        <iframe src="https://docs.google.com/gview?url=${encodeURIComponent(file.file_url)}&embedded=true" class="file-preview" style="width: 100%; height: 100%; border: none;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"></iframe>
+      `;
+    } else {
+      previewHtml = '';
+    }
+  } else {
+    // For other file types, show icon
+    previewHtml = '';
+  }
+  
+  // Add fallback icon for all file types
+  const icon = file.file_type === '.pdf' ? '📄' : 
+               (file.file_type === '.doc' || file.file_type === '.docx') ? '📝' : 
+               (file.file_type === '.jpg' || file.file_type === '.jpeg' || file.file_type === '.png' || file.file_type === '.gif' || file.file_type === '.webp') ? '🖼️' : '📁';
+  
+  previewHtml += `<div class="file-preview-icon" style="display: ${previewHtml ? 'none' : 'flex'};">${icon}</div>`;
+  
+  // Add download button for files that can't be previewed
+  if (file.file_type !== '.jpg' && file.file_type !== '.jpeg' && file.file_type !== '.png' && file.file_type !== '.gif' && file.file_type !== '.webp') {
+    if (file.file_url && file.file_url !== 'undefined' && file.file_url !== '') {
+      previewHtml += `
+        <div style="position: absolute; bottom: 20px; right: 20px;">
+          <button onclick="downloadFile('${file.file_url}', '${file.name}')" style="background: rgba(0,0,0,0.7); color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">
+            📥 Download
+          </button>
+        </div>
+      `;
+    }
+  }
+  
+  // Create file info
+  const fileInfoHtml = `
+    <div class="file-info-overlay">
+      <div class="file-title">${file.name}</div>
+      <div class="file-meta">
+        ${file.vendor || 'Unknown Vendor'} • ${file.project || 'No Project'} • ${file.uploaded_at ? new Date(file.uploaded_at).toLocaleDateString() : 'No Date'}
+      </div>
+      <div class="file-amount">${file.total || '$0.00'}</div>
     </div>
   `;
   
-  // Scroll to details panel on mobile
-  if (window.innerWidth < 768) {
-    detailsPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Create action area
+  const actionAreaHtml = `
+    <div class="action-area">
+      <!-- Class Selection -->
+      <div class="class-selection">
+        <label class="class-selection-label" for="class-search-${file.id}">Select Class:</label>
+        <div class="class-search-container">
+          <input type="text" class="class-search" id="class-search-${file.id}" placeholder="Search for a class..." autocomplete="off">
+          <div class="class-dropdown" id="class-dropdown-${file.id}" style="display: none;">
+            <!-- Classes will be populated by JavaScript -->
+          </div>
+        </div>
+        <div class="selected-class" id="selected-class-${file.id}" style="display: none;">
+          <span class="selected-class-text"></span>
+          <button type="button" class="clear-class" onclick="clearClassSelection(${file.id})">×</button>
+        </div>
+      </div>
+      
+        <!-- Comments -->
+        <div class="comments-section">
+          <label class="comments-label" for="approval-comment-${file.id}">Comments (required for Hold/Reject):</label>
+          <textarea class="comments-textarea" id="approval-comment-${file.id}" placeholder="Required for Hold/Reject actions. Optional for Approve."></textarea>
+        </div>
+      
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <button class="action-btn skip" onclick="skipFile(${file.id})">
+          <span>⏭️</span>
+          <span>Skip</span>
+        </button>
+        <button class="action-btn approve" onclick="approveFile(${file.id})">
+          <span>✓</span>
+          <span>Approve</span>
+        </button>
+        <button class="action-btn hold" onclick="holdFile(${file.id})">
+          <span>◷</span>
+          <span>Hold</span>
+        </button>
+        <button class="action-btn reject" onclick="rejectFile(${file.id})">
+          <span>✗</span>
+          <span>Reject</span>
+        </button>
+      </div>
+    </div>
+  `;
+  
+  // Update the container
+  document.getElementById('current-file-container').innerHTML = `
+    <div class="file-preview-area">
+      ${previewHtml}
+      ${fileInfoHtml}
+    </div>
+    ${actionAreaHtml}
+  `;
+  
+  // Setup class search for this file
+  setupClassSearch(file.id);
+}
+
+function nextFile() {
+  if (currentFileIndex < files.length - 1) {
+    currentFileIndex++;
+    loadCurrentFile();
   }
 }
 
-function approveFile() {
-  if (!selectedFileId) {
-    showMessage('Please select a file first', 'error');
-    return;
+function previousFile() {
+  if (currentFileIndex > 0) {
+    currentFileIndex--;
+    loadCurrentFile();
   }
-  
-  const selectedClassId = document.getElementById('selected-class').dataset.classId;
+}
+
+function approveFile(fileId) {
+  const selectedClassId = document.getElementById(`selected-class-${fileId}`).dataset.classId;
   if (!selectedClassId) {
     showMessage('Please select a class', 'error');
     return;
   }
   
-  const comment = document.getElementById('approval-comment').value;
-  
-  updateFileApproval(selectedFileId, 'approved', comment, selectedClassId);
+  const comment = document.getElementById(`approval-comment-${fileId}`).value;
+  updateFileApproval(fileId, 'approved', comment, selectedClassId);
 }
 
-function rejectFile() {
-  if (!selectedFileId) {
-    showMessage('Please select a file first', 'error');
+function holdFile(fileId) {
+  const comment = document.getElementById(`approval-comment-${fileId}`).value;
+  if (!comment.trim()) {
+    showMessage('Please provide a comment explaining why this file is being held', 'error');
     return;
   }
   
-  const selectedClassId = document.getElementById('selected-class').dataset.classId;
-  if (!selectedClassId) {
-    showMessage('Please select a class', 'error');
-    return;
-  }
-  
-  const comment = document.getElementById('approval-comment').value;
-  
-  updateFileApproval(selectedFileId, 'rejected', comment, selectedClassId);
+  // For hold, we don't need a class selection
+  updateFileApproval(fileId, 'hold', comment, null);
 }
 
-function skipFile() {
-  if (!selectedFileId) {
-    showMessage('Please select a file first', 'error');
+function rejectFile(fileId) {
+  const comment = document.getElementById(`approval-comment-${fileId}`).value;
+  if (!comment.trim()) {
+    showMessage('Please provide a comment explaining why this file is being rejected', 'error');
     return;
   }
   
+  // For reject, we don't need a class selection either
+  updateFileApproval(fileId, 'rejected', comment, null);
+}
+
+function skipFile(fileId) {
   // Just move to next file without changing status
-  const fileItems = document.querySelectorAll('.file-item');
-  const currentIndex = Array.from(fileItems).findIndex(item => 
-    item.dataset.fileId == selectedFileId
-  );
-  
-  if (currentIndex < fileItems.length - 1) {
-    const nextFileId = fileItems[currentIndex + 1].dataset.fileId;
-    selectFile(nextFileId);
+  if (currentFileIndex < files.length - 1) {
+    currentFileIndex++;
+    loadCurrentFile();
   } else {
     showMessage('No more files to review', 'info');
   }
+}
+
+function downloadFile(fileUrl, fileName) {
+  // Create a temporary link to download the file
+  const link = document.createElement('a');
+  link.href = fileUrl;
+  link.download = fileName;
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function updateFileApproval(fileId, status, comment, classId) {
@@ -754,34 +726,16 @@ function updateFileApproval(fileId, status, comment, classId) {
     if (data.success) {
       showMessage(data.message, 'success');
       
-      // Remove the file from the list
-      const fileItem = document.querySelector(`[data-file-id="${fileId}"]`);
-      if (fileItem) {
-        fileItem.remove();
+      // Remove the file from the array
+      files = files.filter(f => f.id !== fileId);
+      
+      // If we're at the end, go back one
+      if (currentFileIndex >= files.length) {
+        currentFileIndex = Math.max(0, files.length - 1);
       }
       
-      // Hide details panel
-      document.getElementById('file-details-panel').style.display = 'none';
-      
-      // Clear selection
-      selectedFileId = null;
-      clearClassSelection();
-      document.getElementById('approval-comment').value = '';
-      
-      // Update file count
-      const remainingFiles = document.querySelectorAll('.file-item').length;
-      document.querySelector('.file-count-badge').textContent = remainingFiles;
-      
-      // If no more files, show empty state
-      if (remainingFiles === 0) {
-        document.querySelector('.files-list').innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">✅</div>
-            <div class="empty-title">All caught up!</div>
-            <div class="empty-text">No files pending approval</div>
-          </div>
-        `;
-      }
+      // Load next file
+      loadCurrentFile();
     } else {
       showMessage(data.message, 'error');
     }
@@ -805,11 +759,6 @@ function showMessage(message, type) {
   const messageDiv = document.createElement('div');
   messageDiv.className = `message message-${type}`;
   messageDiv.textContent = message;
-  messageDiv.style.position = 'fixed';
-  messageDiv.style.top = '80px';
-  messageDiv.style.left = '16px';
-  messageDiv.style.right = '16px';
-  messageDiv.style.zIndex = '1000';
   
   document.body.appendChild(messageDiv);
   
@@ -822,10 +771,10 @@ function showMessage(message, type) {
 }
 
 // Class search functionality
-function setupClassSearch() {
-  const searchInput = document.getElementById('class-search');
-  const dropdown = document.getElementById('class-dropdown');
-  const selectedClass = document.getElementById('selected-class');
+function setupClassSearch(fileId) {
+  const searchInput = document.getElementById(`class-search-${fileId}`);
+  const dropdown = document.getElementById(`class-dropdown-${fileId}`);
+  const selectedClass = document.getElementById(`selected-class-${fileId}`);
   
   searchInput.addEventListener('input', function() {
     const query = this.value.toLowerCase();
@@ -842,7 +791,7 @@ function setupClassSearch() {
       dropdown.innerHTML = '<div class="class-option">No classes found</div>';
     } else {
       dropdown.innerHTML = filteredClasses.map(cls => 
-        `<div class="class-option" onclick="selectClass(${cls.id}, '${cls.display_name}')">${cls.display_name}</div>`
+        `<div class="class-option" onclick="selectClass(${fileId}, ${cls.id}, '${cls.display_name}')">${cls.display_name}</div>`
       ).join('');
     }
     
@@ -857,10 +806,10 @@ function setupClassSearch() {
   });
 }
 
-function selectClass(classId, className) {
-  const searchInput = document.getElementById('class-search');
-  const dropdown = document.getElementById('class-dropdown');
-  const selectedClass = document.getElementById('selected-class');
+function selectClass(fileId, classId, className) {
+  const searchInput = document.getElementById(`class-search-${fileId}`);
+  const dropdown = document.getElementById(`class-dropdown-${fileId}`);
+  const selectedClass = document.getElementById(`selected-class-${fileId}`);
   
   // Hide search and dropdown
   searchInput.style.display = 'none';
@@ -872,10 +821,10 @@ function selectClass(classId, className) {
   selectedClass.querySelector('.selected-class-text').textContent = className;
 }
 
-function clearClassSelection() {
-  const searchInput = document.getElementById('class-search');
-  const dropdown = document.getElementById('class-dropdown');
-  const selectedClass = document.getElementById('selected-class');
+function clearClassSelection(fileId) {
+  const searchInput = document.getElementById(`class-search-${fileId}`);
+  const dropdown = document.getElementById(`class-dropdown-${fileId}`);
+  const selectedClass = document.getElementById(`selected-class-${fileId}`);
   
   // Show search input
   searchInput.style.display = 'block';
@@ -886,9 +835,51 @@ function clearClassSelection() {
   selectedClass.dataset.classId = '';
 }
 
-// Add touch feedback
+// Keyboard navigation
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowLeft') {
+    previousFile();
+  } else if (e.key === 'ArrowRight') {
+    nextFile();
+  }
+});
+
+// Touch/swipe navigation
+let touchStartX = 0;
+let touchEndX = 0;
+
+document.addEventListener('touchstart', function(e) {
+  touchStartX = e.changedTouches[0].screenX;
+});
+
+document.addEventListener('touchend', function(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+});
+
+function handleSwipe() {
+  const swipeThreshold = 50;
+  const diff = touchStartX - touchEndX;
+  
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0) {
+      // Swipe left - next file
+      nextFile();
+    } else {
+      // Swipe right - previous file
+      previousFile();
+    }
+  }
+}
+
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-  const touchElements = document.querySelectorAll('.file-item, .approval-btn');
+  if (files.length > 0) {
+    loadCurrentFile();
+  }
+  
+  // Add touch feedback
+  const touchElements = document.querySelectorAll('.action-btn, .class-option, .nav-btn');
   touchElements.forEach(element => {
     element.addEventListener('touchstart', function() {
       this.style.transform = 'scale(0.98)';
@@ -898,9 +889,6 @@ document.addEventListener('DOMContentLoaded', function() {
       this.style.transform = '';
     });
   });
-  
-  // Setup class search
-  setupClassSearch();
 });
 </script>
 {% endblock %}
